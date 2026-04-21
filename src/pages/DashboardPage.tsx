@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
-import Layout from '../components/Layout/Layout';
 import WinnerCard from '../components/WinnerCard/WinnerCard';
 import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
 import DonutChart from '../components/DonutChart/DonutChart';
@@ -69,30 +68,26 @@ export default function DashboardPage() {
   // ── Loading state ────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <Layout title="Corporate Dashboard">
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
-          <Loader2 size={32} className="animate-spin text-blue-400" />
-          <p className="text-sm font-medium">Loading game data…</p>
-        </div>
-      </Layout>
+      <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
+        <Loader2 size={32} className="animate-spin text-blue-400" />
+        <p className="text-sm font-medium">Loading game data…</p>
+      </div>
     );
   }
 
   // ── Error state ──────────────────────────────────────────────────────────
   if (error) {
     return (
-      <Layout title="Corporate Dashboard">
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-          <AlertCircle size={32} className="text-red-400" />
-          <p className="text-sm font-semibold text-slate-700">Failed to load data</p>
-          <p className="text-xs text-slate-400 max-w-xs">{error}</p>
-        </div>
-      </Layout>
+      <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+        <AlertCircle size={32} className="text-red-400" />
+        <p className="text-sm font-semibold text-slate-700">Failed to load data</p>
+        <p className="text-xs text-slate-400 max-w-xs">{error}</p>
+      </div>
     );
   }
 
   return (
-    <Layout title="Corporate Dashboard">
+    <>
       <WinnerCard winner="Enrique" score="3 - 2" streakDays={5} />
       <MiniCalendar
         initialYear={2023}
@@ -107,6 +102,6 @@ export default function DashboardPage() {
         onClose={() => setDrawerOpen(false)}
         date={drawerDate}
       />
-    </Layout>
+    </>
   );
 }

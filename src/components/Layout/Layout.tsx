@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 
-interface LayoutProps {
-  children: React.ReactNode;
-  title?: string;
-}
+const ROUTE_TITLES: Record<string, string> = {
+  '/': 'Corporate Dashboard',
+  '/analytics': 'Queens Analytics',
+  '/results': 'Game Results',
+  '/settings': 'Settings',
+};
 
-export default function Layout({ children, title = 'LinkedIn Tracker' }: LayoutProps) {
+export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { pathname } = useLocation();
+  const title = ROUTE_TITLES[pathname] ?? 'LinkedIn Tracker';
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -35,7 +40,7 @@ export default function Layout({ children, title = 'LinkedIn Tracker' }: LayoutP
 
       {/* Page content — max-w-md keeps it mobile-proportioned on larger screens */}
       <main className="max-w-md mx-auto px-4 py-5 space-y-4">
-        {children}
+        <Outlet />
       </main>
     </div>
   );

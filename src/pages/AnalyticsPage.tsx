@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Trophy, Clock, CheckCircle, Calendar } from 'lucide-react';
-import Layout from '../components/Layout/Layout';
 import MetricCard from '../components/MetricCard/MetricCard';
 import TrendChart from '../components/TrendChart/TrendChart';
 
@@ -11,7 +10,7 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('Last 30 Days');
 
   return (
-    <Layout title="Queens Analytics">
+    <>
       {/* Page intro */}
       <div>
         <h1 className="text-xl font-bold text-slate-900">Performance Overview</h1>
@@ -68,6 +67,6 @@ export default function AnalyticsPage() {
 
       {/* Line chart */}
       <TrendChart />
-    </Layout>
+    </>
   );
 }
