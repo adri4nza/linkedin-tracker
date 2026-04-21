@@ -67,9 +67,9 @@ const GAME_RESULTS: GameResult[] = [
     id: 'patches',
     name: 'Patches',
     icon: <Puzzle size={16} />,
-    francisco: 'Dressed',
-    enrique: 'Dressed',
-    winner: undefined,
+    francisco: '0:38',
+    enrique: '0:45',
+    winner: 'francisco',
   },
 ];
 
