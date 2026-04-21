@@ -9,6 +9,18 @@ export function timeToSeconds(time: string): number {
 }
 
 /**
+ * Converts total seconds to a 'M:SS' display string.
+ * Returns '—' for non-finite or negative values.
+ */
+export function secondsToTime(secs: number): string {
+  if (!isFinite(secs) || secs < 0) return '—';
+  const total = Math.round(secs);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/**
  * Evaluates whether a 'Sin Fallos' CSV value represents a flawless run.
  * Accepts: 'TRUE', 'true', 'Yes', 'yes', '1'.
  */
