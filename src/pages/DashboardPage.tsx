@@ -1,14 +1,14 @@
 import Layout from '../components/Layout/Layout';
-import { LayoutDashboard } from 'lucide-react';
+import WinnerCard from '../components/WinnerCard/WinnerCard';
+import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
+import DonutChart from '../components/DonutChart/DonutChart';
 
 export default function DashboardPage() {
   return (
-    <Layout title="Dashboard">
-      <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-        <LayoutDashboard size={40} className="text-slate-300" />
-        <h1 className="text-lg font-bold text-slate-700">Dashboard</h1>
-        <p className="text-sm text-slate-400">Main view — coming soon.</p>
-      </div>
+    <Layout title="Corporate Dashboard">
+      <WinnerCard winner="Enrique" score="3 - 2" streakDays={5} />
+      <MiniCalendar initialYear={2023} initialMonth={9} highlightedDay={6} />
+      <DonutChart />
     </Layout>
   );
 }
