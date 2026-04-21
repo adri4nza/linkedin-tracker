@@ -5,6 +5,7 @@ import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
 import DonutChart from '../components/DonutChart/DonutChart';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
 import { useGamesData } from '../hooks/useGamesData';
+import { timeToSeconds } from '../utils/timeUtils';
 
 const CSV_URL = import.meta.env.VITE_CSV_URL as string | undefined;
 
@@ -31,26 +32,20 @@ function getTodayLocalDate(): string {
   return `${year}-${month}-${day}`;
 }
 
-function timeToSeconds(time: string): number {
-  const [m, s] = time.trim().split(':').map(Number);
-  if (isNaN(m) || isNaN(s)) return Infinity;
-  return m * 60 + s;
-}
-
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-function formatDate(day: number, month: number, year: number): string {
-  return `${MONTH_NAMES[month]} ${day}, ${year}`;
-}
-
 export default function DashboardPage() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerDate, setDrawerDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const { data, isLoading, error } = useGamesData(CSV_URL ?? '');
+
+  // ── Set of all YYYY-MM-DD dates that have game records ──────────────────
+  const datesWithData = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of data) {
+      const d = row.Fecha?.trim();
+      if (d) set.add(d);
+    }
+    return set;
+  }, [data]);
 
   // ── Compute win-rate percentages from total records per player ──────────
   const winRateData = useMemo(() => {
@@ -114,8 +109,10 @@ export default function DashboardPage() {
   }, [data]);
 
   function handleDayClick(day: number, month: number, year: number) {
-    setDrawerDate(formatDate(day, month, year));
-    setDrawerOpen(true);
+    const mm  = String(month + 1).padStart(2, '0');
+    const dd  = String(day).padStart(2, '0');
+    const iso = `${year}-${mm}-${dd}`;
+    if (datesWithData.has(iso)) setSelectedDate(iso);
   }
 
   // ── Loading state ────────────────────────────────────────────────────────
@@ -146,17 +143,16 @@ export default function DashboardPage() {
         score={todayResult.hasGames  ? todayResult.score  : undefined}
       />
       <MiniCalendar
-        initialYear={2023}
-        initialMonth={9}
-        highlightedDay={6}
+        datesWithData={datesWithData}
         onDayClick={handleDayClick}
       />
       <DonutChart data={winRateData.length ? winRateData : undefined} />
 
       <DailyResultsDrawer
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        date={drawerDate}
+        isOpen={selectedDate !== null}
+        onClose={() => setSelectedDate(null)}
+        selectedDate={selectedDate}
+        data={data}
       />
     </>
   );

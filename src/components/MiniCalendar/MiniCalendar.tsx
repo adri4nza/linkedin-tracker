@@ -33,6 +33,8 @@ interface MiniCalendarProps {
   initialYear?: number;
   /** Called when the user clicks a day in the current month. */
   onDayClick?: (day: number, month: number, year: number) => void;
+  /** Set of ISO date strings (YYYY-MM-DD) that have game records. Used to render indicator dots. */
+  datesWithData?: Set<string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -43,6 +45,7 @@ export default function MiniCalendar({
   initialMonth,
   initialYear,
   onDayClick,
+  datesWithData,
 }: MiniCalendarProps) {
   const today = new Date();
   const [year, setYear] = useState(initialYear ?? today.getFullYear());
@@ -119,11 +122,13 @@ export default function MiniCalendar({
         {currentDays.map((d) => {
           const isSelected = d === selected;
           const todayMark = isToday(d) && d !== selected;
+          const isoKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const hasData = datesWithData?.has(isoKey) ?? false;
           return (
             <button
               key={d}
               onClick={() => { setSelected(d); onDayClick?.(d, month, year); }}
-              className={`flex items-center justify-center h-8 w-8 mx-auto rounded-full text-xs font-medium transition-colors
+              className={`relative flex flex-col items-center justify-center h-8 w-8 mx-auto rounded-full text-xs font-medium transition-colors
                 ${isSelected
                   ? 'bg-blue-500 text-white font-bold'
                   : todayMark
@@ -132,6 +137,13 @@ export default function MiniCalendar({
                 }`}
             >
               {d}
+              {hasData && (
+                <span
+                  className={`absolute bottom-0.5 w-1 h-1 rounded-full ${
+                    isSelected ? 'bg-white/70' : 'bg-blue-400'
+                  }`}
+                />
+              )}
             </button>
           );
         })}
