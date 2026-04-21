@@ -31,6 +31,8 @@ interface MiniCalendarProps {
   initialMonth?: number;
   /** Initial year. Defaults to current year. */
   initialYear?: number;
+  /** Called when the user clicks a day in the current month. */
+  onDayClick?: (day: number, month: number, year: number) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -40,6 +42,7 @@ export default function MiniCalendar({
   highlightedDay,
   initialMonth,
   initialYear,
+  onDayClick,
 }: MiniCalendarProps) {
   const today = new Date();
   const [year, setYear] = useState(initialYear ?? today.getFullYear());
@@ -119,7 +122,7 @@ export default function MiniCalendar({
           return (
             <button
               key={d}
-              onClick={() => setSelected(d)}
+              onClick={() => { setSelected(d); onDayClick?.(d, month, year); }}
               className={`flex items-center justify-center h-8 w-8 mx-auto rounded-full text-xs font-medium transition-colors
                 ${isSelected
                   ? 'bg-blue-500 text-white font-bold'
