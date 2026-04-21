@@ -8,7 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import type { TooltipProps } from 'recharts';
+import type { TooltipPayload, TooltipPayloadEntry } from 'recharts';
 
 // ---------------------------------------------------------------------------
 // Simulated dataset — Queens completion times in seconds (Oct 1 – Oct 14)
@@ -43,14 +43,18 @@ const formatTime = (seconds: number): string => {
 // ---------------------------------------------------------------------------
 // Custom tooltip
 // ---------------------------------------------------------------------------
-type ChartTooltipProps = TooltipProps<number, string>;
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload;
+  label?: string;
+}
 
 function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white border border-slate-100 rounded-xl px-3 py-2.5 shadow-lg text-xs">
       <p className="font-semibold text-slate-700 mb-1.5">{label}</p>
-      {payload.map((p) => (
+      {payload.map((p: TooltipPayloadEntry) => (
         <div key={p.name} className="flex items-center gap-2 mb-0.5">
           <span style={{ color: p.color }}>●</span>
           <span className="text-slate-500">{p.name}:</span>

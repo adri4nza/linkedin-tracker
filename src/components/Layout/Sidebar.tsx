@@ -16,6 +16,10 @@ const navItems = [
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
 
+  // Dashboard uses exact match; other items use startsWith so nested routes stay highlighted
+  const isActive = (path: string) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+
   return (
     <>
       {/* Backdrop */}
@@ -51,15 +55,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="px-3 py-4 space-y-0.5">
-          {navItems.map(({ icon: Icon, label, path }) => {
-            const isActive = location.pathname === path;
-            return (
+          {navItems.map(({ icon: Icon, label, path }) => (
               <Link
                 key={label}
                 to={path}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive
+                  isActive(path)
                     ? 'bg-blue-50 text-blue-600'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
@@ -67,8 +69,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <Icon size={18} />
                 {label}
               </Link>
-            );
-          })}
+            ))}
         </nav>
 
         {/* Footer */}
