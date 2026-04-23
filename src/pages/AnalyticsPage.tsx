@@ -5,6 +5,7 @@ import TrendChart from '../components/TrendChart/TrendChart';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
 import { timeToSeconds, secondsToTime, calculateWinner } from '../utils/timeUtils';
+import { usePlayerColors } from '../hooks/usePlayerColors';
 
 const CSV_URL = getActiveCsvUrl();
 
@@ -42,6 +43,7 @@ export default function AnalyticsPage() {
   const [selectedGame, setSelectedGame] = useState<Game>('Queens');
 
   const { data, isLoading, error } = useGamesData(CSV_URL);
+  const { colors } = usePlayerColors();
 
   // ── Filter by game + time range ──────────────────────────────────────────
   const filteredRecords = useMemo(() => {
@@ -214,7 +216,7 @@ export default function AnalyticsPage() {
           />
 
           {/* Line chart */}
-          <TrendChart data={stats.chartData} />
+          <TrendChart data={stats.chartData} colors={colors} />
         </>
       )}
     </>

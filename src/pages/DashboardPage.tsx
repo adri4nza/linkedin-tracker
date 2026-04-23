@@ -7,14 +7,9 @@ import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDra
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
 import { calculateWinner } from '../utils/timeUtils';
+import { usePlayerColors, TIE_COLOUR } from '../hooks/usePlayerColors';
 
 const CSV_URL = getActiveCsvUrl();
-
-// Colour palette — keyed by lowercase player name
-const PLAYER_COLOURS: Record<string, string> = {
-  enrique: '#3b82f6',
-  francisco: '#0f172a',
-};
 
 
 // ── Date / time helpers ────────────────────────────────────────────────────
@@ -30,26 +25,19 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const { data, isLoading, error } = useGamesData(CSV_URL);
+  const { colors } = usePlayerColors();
 
-  // ── Set of all YYYY-MM-DD dates that have game records ──────────────────
-  const datesWithData = useMemo(() => {
-    const set = new Set<string>();
-    for (const row of data) {
-      const d = row.Fecha?.trim();
-      if (d) set.add(d);
-    }
-    return set;
-  }, [data]);
+  // ── Compute days won + per-day calendar colours ──────────────────────────
+  const { winRateData, dateColorMap } = useMemo(() => {
+    const dateColorMap = new Map<string, string>();
+    if (!data.length) return { winRateData: [], dateColorMap };
 
-  // ── Compute days won via per-day head-to-head ────────────────────────────
-  const winRateData = useMemo(() => {
-    if (!data.length) return [];
-
-    // Step 1: group records by date → game
+    // Group records by date → game
     const dateMap = new Map<string, Map<string, { enrique?: GameRecord; francisco?: GameRecord }>>();
     for (const row of data) {
       const fecha  = row.Fecha?.trim() ?? '';
       const juego  = row.Juego?.trim() ?? '';
+      if (!fecha) continue;
       if (!dateMap.has(fecha)) dateMap.set(fecha, new Map());
       const gameMap = dateMap.get(fecha)!;
       if (!gameMap.has(juego)) gameMap.set(juego, {});
@@ -59,19 +47,18 @@ export default function DashboardPage() {
       else if (player === 'francisco') entry.francisco = row;
     }
 
-    // Step 2: for each day tally mini-game wins, then crown a day winner
-    let enriqueDays   = 0;
-    let franciscoDays = 0;
-    let tieDays       = 0;
+    let enriqueDays = 0, franciscoDays = 0, tieDays = 0;
 
-    for (const gameMap of dateMap.values()) {
-      // Only count days where both players played the same number of mini-games
+    for (const [fecha, gameMap] of dateMap.entries()) {
       let eGames = 0, fGames = 0;
       for (const { enrique, francisco } of gameMap.values()) {
         if (enrique)   eGames++;
         if (francisco) fGames++;
       }
-      if (eGames !== fGames) continue;
+      if (eGames !== fGames) {
+        dateColorMap.set(fecha, TIE_COLOUR);
+        continue;
+      }
 
       let eWins = 0, fWins = 0;
       for (const { enrique, francisco } of gameMap.values()) {
@@ -79,19 +66,30 @@ export default function DashboardPage() {
         if (result === 'a') eWins++;
         else if (result === 'b') fWins++;
       }
-      if (eWins > fWins)      enriqueDays++;
-      else if (fWins > eWins) franciscoDays++;
-      else                    tieDays++;
+      if (eWins > fWins) {
+        enriqueDays++;
+        dateColorMap.set(fecha, colors.enrique);
+      } else if (fWins > eWins) {
+        franciscoDays++;
+        dateColorMap.set(fecha, colors.francisco);
+      } else {
+        tieDays++;
+        dateColorMap.set(fecha, TIE_COLOUR);
+      }
     }
 
-    return [
-      { name: 'Francisco', value: franciscoDays, color: PLAYER_COLOURS['francisco'] },
-      { name: 'Enrique',   value: enriqueDays,   color: PLAYER_COLOURS['enrique']   },
-      { name: 'Empates',   value: tieDays,        color: '#94a3b8'                   },
+    const winRateData = [
+      { name: 'Francisco', value: franciscoDays, color: colors.francisco },
+      { name: 'Enrique',   value: enriqueDays,   color: colors.enrique   },
+      { name: 'Empates',   value: tieDays,        color: TIE_COLOUR       },
     ].filter((e) => e.value > 0);
-  }, [data]);
 
-  // ── Today's winner ───────────────────────────────────────────────────────
+    return { winRateData, dateColorMap };
+  }, [data, colors]);
+
+  // Derive the set of dates that have any records (for handleDayClick check)
+  const datesWithData = useMemo(() => new Set(dateColorMap.keys()), [dateColorMap]);
+
   const todayResult = useMemo(() => {
     const today = getTodayLocalDate();
     const todayRecords = data.filter((row) => row.Fecha?.trim() === today);
@@ -162,6 +160,7 @@ export default function DashboardPage() {
       />
       <MiniCalendar
         datesWithData={datesWithData}
+        dateColorMap={dateColorMap}
         onDayClick={handleDayClick}
       />
       <DonutChart data={winRateData.length ? winRateData : undefined} />

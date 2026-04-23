@@ -23,6 +23,7 @@ export interface ChartDataPoint {
 
 interface TrendChartProps {
   data: ChartDataPoint[];
+  colors?: { francisco: string; enrique: string };
 }
 
 // ---------------------------------------------------------------------------
@@ -53,7 +54,9 @@ function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
-export default function TrendChart({ data }: TrendChartProps) {
+export default function TrendChart({ data, colors }: TrendChartProps) {
+  const franciscoColor = colors?.francisco ?? '#3b82f6';
+  const enriqueColor   = colors?.enrique   ?? '#ef4444';
   const xTicks = useMemo(() => {
     if (data.length < 2) return data.map((d) => d.date);
     return [data[0].date, data[data.length - 1].date];
@@ -101,23 +104,23 @@ export default function TrendChart({ data }: TrendChartProps) {
             iconSize={18}
             wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
           />
-          {/* Francisco — solid dark line */}
+          {/* Francisco line */}
           <Line
             type="monotone"
             dataKey="francisco"
             name="Francisco"
-            stroke="#0f172a"
+            stroke={franciscoColor}
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4, strokeWidth: 0 }}
             connectNulls={false}
           />
-          {/* Enrique — dashed blue line */}
+          {/* Enrique — dashed line */}
           <Line
             type="monotone"
             dataKey="enrique"
             name="Enrique"
-            stroke="#3b82f6"
+            stroke={enriqueColor}
             strokeWidth={2}
             strokeDasharray="5 4"
             dot={false}

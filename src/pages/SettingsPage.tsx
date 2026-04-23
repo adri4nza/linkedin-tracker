@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Database, RefreshCw, Save, RotateCcw } from 'lucide-react';
+import { Database, RefreshCw, Save, RotateCcw, Palette } from 'lucide-react';
 import { CUSTOM_CSV_KEY, getActiveCsvUrl } from '../hooks/useGamesData';
+import { usePlayerColors, TIE_COLOUR } from '../hooks/usePlayerColors';
 
 const ENV_URL: string = (import.meta.env.VITE_CSV_URL as string | undefined) ?? '';
 
@@ -21,6 +22,10 @@ export default function SettingsPage() {
   );
   const [saved, setSaved] = useState(false);
 
+  const { colors, updateColors } = usePlayerColors();
+  const [colorInputs, setColorInputs] = useState({ ...colors });
+  const [colorsSaved, setColorsSaved] = useState(false);
+
   const isUsingCustom = Boolean(localStorage.getItem(CUSTOM_CSV_KEY));
 
   function handleSave() {
@@ -39,6 +44,12 @@ export default function SettingsPage() {
 
   function handleForceRefresh() {
     window.location.reload();
+  }
+
+  function handleSaveColors() {
+    updateColors(colorInputs);
+    setColorsSaved(true);
+    setTimeout(() => window.location.reload(), 600);
   }
 
   return (
@@ -119,6 +130,64 @@ export default function SettingsPage() {
         >
           <RefreshCw size={13} />
           Force Refresh Data
+        </button>
+      </div>
+
+      {/* ── Section C: Theme & Colors ── */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-4">
+        <div className="flex items-center gap-2">
+          <Palette size={16} className="text-blue-500 shrink-0" />
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Theme &amp; Colors</h2>
+        </div>
+
+        <p className="text-xs text-slate-500">
+          Customize the highlight color for each player. Changes apply after saving.
+        </p>
+
+        <div className="space-y-3">
+          {(
+            [{ label: 'Francisco', key: 'francisco' }, { label: 'Enrique', key: 'enrique' }] as const
+          ).map(({ label, key }) => (
+            <div key={key} className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-700">{label}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-slate-400">
+                  {colorInputs[key].toUpperCase()}
+                </span>
+                <input
+                  type="color"
+                  value={colorInputs[key]}
+                  onChange={(e) => {
+                    setColorInputs((prev) => ({ ...prev, [key]: e.target.value }));
+                    setColorsSaved(false);
+                  }}
+                  className="w-10 h-8 rounded-lg border border-slate-200 cursor-pointer p-0.5 bg-white"
+                />
+              </div>
+            </div>
+          ))}
+
+          {/* Tie color — read-only */}
+          <div className="flex items-center justify-between opacity-50">
+            <span className="text-sm font-medium text-slate-700">Empates</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-slate-400">{TIE_COLOUR.toUpperCase()}</span>
+              <div
+                className="w-10 h-8 rounded-lg border border-slate-200"
+                style={{ backgroundColor: TIE_COLOUR }}
+                title="Fixed — not configurable"
+              />
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSaveColors}
+          disabled={colorsSaved}
+          className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        >
+          <Save size={13} />
+          {colorsSaved ? 'Saved — reloading…' : 'Save Colors'}
         </button>
       </div>
     </>

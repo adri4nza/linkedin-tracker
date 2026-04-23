@@ -35,6 +35,8 @@ interface MiniCalendarProps {
   onDayClick?: (day: number, month: number, year: number) => void;
   /** Set of ISO date strings (YYYY-MM-DD) that have game records. Used to render indicator dots. */
   datesWithData?: Set<string>;
+  /** Map of ISO date string → hex color for the indicator dot. Overrides default blue when provided. */
+  dateColorMap?: Map<string, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -46,6 +48,7 @@ export default function MiniCalendar({
   initialYear,
   onDayClick,
   datesWithData,
+  dateColorMap,
 }: MiniCalendarProps) {
   const today = new Date();
   const [year, setYear] = useState(initialYear ?? today.getFullYear());
@@ -123,7 +126,8 @@ export default function MiniCalendar({
           const isSelected = d === selected;
           const todayMark = isToday(d) && d !== selected;
           const isoKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          const hasData = datesWithData?.has(isoKey) ?? false;
+          const hasData = (dateColorMap?.has(isoKey) ?? datesWithData?.has(isoKey)) ?? false;
+          const dotColor = dateColorMap?.get(isoKey) ?? '#60a5fa';
           return (
             <button
               key={d}
@@ -139,9 +143,8 @@ export default function MiniCalendar({
               {d}
               {hasData && (
                 <span
-                  className={`absolute bottom-0.5 w-1 h-1 rounded-full ${
-                    isSelected ? 'bg-white/70' : 'bg-blue-400'
-                  }`}
+                  className="absolute bottom-0.5 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.7)' : dotColor }}
                 />
               )}
             </button>
