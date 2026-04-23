@@ -4,7 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 
 const ROUTE_TITLES: Record<string, string> = {
-  '/': 'Corporate Dashboard',
+  '/': 'Dashboard',
   '/analytics': 'Analytics',
   '/results': 'Game Results',
   '/settings': 'Settings',
