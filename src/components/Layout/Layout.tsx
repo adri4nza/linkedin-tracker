@@ -33,9 +33,9 @@ export default function Layout() {
         </div>
 
         {/* User avatar */}
-        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-xs font-bold text-blue-700 dark:text-blue-300 select-none">
+        {/* <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-xs font-bold text-blue-700 dark:text-blue-300 select-none">
           LT
-        </div>
+        </div> */}
       </header>
 
       {/* Page content — max-w-md keeps it mobile-proportioned on larger screens */}
