@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Corporate Dashboard',
-  '/analytics': 'Queens Analytics',
+  '/analytics': 'Analytics',
   '/results': 'Game Results',
   '/settings': 'Settings',
 };
