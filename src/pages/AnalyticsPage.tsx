@@ -2,11 +2,11 @@ import { useState, useMemo } from 'react';
 import { Trophy, Clock, CheckCircle, Calendar, Loader2, AlertCircle } from 'lucide-react';
 import MetricCard from '../components/MetricCard/MetricCard';
 import TrendChart from '../components/TrendChart/TrendChart';
-import { useGamesData } from '../hooks/useGamesData';
+import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
 import { timeToSeconds, secondsToTime } from '../utils/timeUtils';
 
-const CSV_URL = import.meta.env.VITE_CSV_URL as string | undefined;
+const CSV_URL = getActiveCsvUrl();
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('Last 30 Days');
   const [selectedGame, setSelectedGame] = useState<Game>('Queens');
 
-  const { data, isLoading, error } = useGamesData(CSV_URL ?? '');
+  const { data, isLoading, error } = useGamesData(CSV_URL);
 
   // ── Filter by game + time range ──────────────────────────────────────────
   const filteredRecords = useMemo(() => {

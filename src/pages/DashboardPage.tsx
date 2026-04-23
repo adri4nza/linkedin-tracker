@@ -4,17 +4,10 @@ import WinnerCard from '../components/WinnerCard/WinnerCard';
 import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
 import DonutChart from '../components/DonutChart/DonutChart';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
-import { useGamesData } from '../hooks/useGamesData';
+import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import { timeToSeconds } from '../utils/timeUtils';
 
-const CSV_URL = import.meta.env.VITE_CSV_URL as string | undefined;
-
-if (!CSV_URL) {
-  console.error(
-    '[DashboardPage] VITE_CSV_URL is not defined. ' +
-    'Add it to your .env file and restart the dev server.',
-  );
-}
+const CSV_URL = getActiveCsvUrl();
 
 // Colour palette — keyed by lowercase player name
 const PLAYER_COLOURS: Record<string, string> = {
@@ -35,7 +28,7 @@ function getTodayLocalDate(): string {
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const { data, isLoading, error } = useGamesData(CSV_URL ?? '');
+  const { data, isLoading, error } = useGamesData(CSV_URL);
 
   // ── Set of all YYYY-MM-DD dates that have game records ──────────────────
   const datesWithData = useMemo(() => {

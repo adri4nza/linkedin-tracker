@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Loader2, AlertCircle, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
-import { useGamesData } from '../hooks/useGamesData';
+import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
 import { timeToSeconds, isFlawless } from '../utils/timeUtils';
 
-const CSV_URL = import.meta.env.VITE_CSV_URL as string | undefined;
+const CSV_URL = getActiveCsvUrl();
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -44,7 +44,7 @@ export default function ResultsPage() {
   const [sortDir, setSortDir]         = useState<SortDir>('desc');
   const [page, setPage]               = useState(1);
 
-  const { data, isLoading, error } = useGamesData(CSV_URL ?? '');
+  const { data, isLoading, error } = useGamesData(CSV_URL);
 
   // ── 1. Filter ────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
