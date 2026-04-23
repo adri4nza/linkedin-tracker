@@ -9,6 +9,7 @@ interface WinRateEntry {
   name: string;
   value: number; // absolute day count
   color: string;
+  breakdown?: Record<string, number>;
 }
 
 interface DonutChartProps {
@@ -59,7 +60,7 @@ function CentreLabel({
 // Component
 // ---------------------------------------------------------------------------
 export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
-  const [selectedSegment, setSelectedSegment] = useState<{ name: string; value: number } | null>(null);
+  const [selectedSegment, setSelectedSegment] = useState<{ name: string; value: number; breakdown?: Record<string, number> } | null>(null);
   const { isDark } = useDarkMode();
 
   const total    = data.reduce((s, e) => s + e.value, 0);
@@ -67,7 +68,7 @@ export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
 
   function handleCellClick(entry: WinRateEntry) {
     setSelectedSegment((prev) =>
-      prev?.name === entry.name ? null : { name: entry.name, value: entry.value },
+      prev?.name === entry.name ? null : { name: entry.name, value: entry.value, breakdown: entry.breakdown },
     );
   }
 
@@ -119,23 +120,44 @@ export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
 
       {/* Selected segment detail */}
       {selectedSegment && (
-        <div className="mb-3 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Seleccionado:</span>
-          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{selectedSegment.name}</span>
-          <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
-          <span className="text-sm font-semibold text-blue-600">
-            {selectedSegment.value} día{selectedSegment.value !== 1 ? 's' : ''}
-          </span>
-          <span className="text-xs text-slate-400">
-            ({total > 0 ? Math.round((selectedSegment.value / total) * 100) : 0}%)
-          </span>
-          <button
-            onClick={() => setSelectedSegment(null)}
-            className="ml-1 text-slate-300 hover:text-slate-500 transition-colors text-xs leading-none"
-            aria-label="Clear selection"
-          >
-            ✕
-          </button>
+      <div className="mb-3 flex flex-col items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Seleccionado:</span>
+            <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{selectedSegment.name}</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+            <span className="text-sm font-semibold text-blue-600">
+              {selectedSegment.value} día{selectedSegment.value !== 1 ? 's' : ''}
+            </span>
+            <span className="text-xs text-slate-400">
+              ({total > 0 ? Math.round((selectedSegment.value / total) * 100) : 0}%)
+            </span>
+            <button
+              onClick={() => setSelectedSegment(null)}
+              className="ml-1 text-slate-300 hover:text-slate-500 transition-colors text-xs leading-none"
+              aria-label="Clear selection"
+            >
+              ✕
+            </button>
+          </div>
+          {selectedSegment.breakdown && Object.keys(selectedSegment.breakdown).length > 0 && (
+            <div className="flex flex-wrap gap-1.5 justify-center pt-1 border-t border-slate-200 dark:border-slate-600 w-full">
+              {Object.entries(selectedSegment.breakdown)
+                .sort(([a], [b]) => {
+                  const aWins = Number(a.split('-')[0]);
+                  const bWins = Number(b.split('-')[0]);
+                  return bWins - aWins;
+                })
+                .map(([score, count]) => (
+                  <span
+                    key={score}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
+                  >
+                    <span className="font-bold">{score}</span>
+                    <span className="text-slate-400 dark:text-slate-500">×{count}</span>
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
       )}
 

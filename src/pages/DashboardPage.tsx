@@ -48,6 +48,9 @@ export default function DashboardPage() {
     }
 
     let enriqueDays = 0, franciscoDays = 0, tieDays = 0;
+    const eBreakdown: Record<string, number> = {};
+    const fBreakdown: Record<string, number> = {};
+    const tieBreakdown: Record<string, number> = {};
 
     for (const [fecha, gameMap] of dateMap.entries()) {
       let eGames = 0, fGames = 0;
@@ -66,22 +69,26 @@ export default function DashboardPage() {
         if (result === 'a') eWins++;
         else if (result === 'b') fWins++;
       }
+      const score = `${Math.max(eWins, fWins)}-${Math.min(eWins, fWins)}`;
       if (eWins > fWins) {
         enriqueDays++;
         dateColorMap.set(fecha, colors.enrique);
+        eBreakdown[score] = (eBreakdown[score] ?? 0) + 1;
       } else if (fWins > eWins) {
         franciscoDays++;
         dateColorMap.set(fecha, colors.francisco);
+        fBreakdown[score] = (fBreakdown[score] ?? 0) + 1;
       } else {
         tieDays++;
         dateColorMap.set(fecha, TIE_COLOUR);
+        tieBreakdown[score] = (tieBreakdown[score] ?? 0) + 1;
       }
     }
 
     const winRateData = [
-      { name: 'Francisco', value: franciscoDays, color: colors.francisco },
-      { name: 'Enrique',   value: enriqueDays,   color: colors.enrique   },
-      { name: 'Empates',   value: tieDays,        color: TIE_COLOUR       },
+      { name: 'Francisco', value: franciscoDays, color: colors.francisco, breakdown: fBreakdown },
+      { name: 'Enrique',   value: enriqueDays,   color: colors.enrique,   breakdown: eBreakdown },
+      { name: 'Empates',   value: tieDays,        color: TIE_COLOUR,       breakdown: tieBreakdown },
     ].filter((e) => e.value > 0);
 
     return { winRateData, dateColorMap };
