@@ -48,9 +48,9 @@ export default function DashboardPage() {
     }
 
     let enriqueDays = 0, franciscoDays = 0, tieDays = 0;
-    const eBreakdown: Record<string, number> = {};
-    const fBreakdown: Record<string, number> = {};
-    const tieBreakdown: Record<string, number> = {};
+    const eBreakdown: Record<string, string[]> = {};
+    const fBreakdown: Record<string, string[]> = {};
+    const tieBreakdown: Record<string, string[]> = {};
 
     for (const [fecha, gameMap] of dateMap.entries()) {
       let eGames = 0, fGames = 0;
@@ -73,15 +73,18 @@ export default function DashboardPage() {
       if (eWins > fWins) {
         enriqueDays++;
         dateColorMap.set(fecha, colors.enrique);
-        eBreakdown[score] = (eBreakdown[score] ?? 0) + 1;
+        if (!eBreakdown[score]) eBreakdown[score] = [];
+        eBreakdown[score].push(fecha);
       } else if (fWins > eWins) {
         franciscoDays++;
         dateColorMap.set(fecha, colors.francisco);
-        fBreakdown[score] = (fBreakdown[score] ?? 0) + 1;
+        if (!fBreakdown[score]) fBreakdown[score] = [];
+        fBreakdown[score].push(fecha);
       } else {
         tieDays++;
         dateColorMap.set(fecha, TIE_COLOUR);
-        tieBreakdown[score] = (tieBreakdown[score] ?? 0) + 1;
+        if (!tieBreakdown[score]) tieBreakdown[score] = [];
+        tieBreakdown[score].push(fecha);
       }
     }
 
@@ -170,7 +173,7 @@ export default function DashboardPage() {
         dateColorMap={dateColorMap}
         onDayClick={handleDayClick}
       />
-      <DonutChart data={winRateData.length ? winRateData : undefined} />
+      <DonutChart data={winRateData.length ? winRateData : undefined} onDateSelect={setSelectedDate} />
 
       <DailyResultsDrawer
         isOpen={selectedDate !== null}

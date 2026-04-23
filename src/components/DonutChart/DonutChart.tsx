@@ -9,11 +9,12 @@ interface WinRateEntry {
   name: string;
   value: number; // absolute day count
   color: string;
-  breakdown?: Record<string, number>;
+  breakdown?: Record<string, string[]>;
 }
 
 interface DonutChartProps {
   data?: WinRateEntry[];
+  onDateSelect?: (date: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -24,6 +25,14 @@ const DEFAULT_DATA: WinRateEntry[] = [
   { name: 'Francisco', value: 9,  color: '#0f172a' },
   { name: 'Empates',   value: 3,  color: '#94a3b8' },
 ];
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function formatDateShort(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+}
 
 // ---------------------------------------------------------------------------
 // Custom centre label
@@ -59,8 +68,9 @@ function CentreLabel({
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
-export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
-  const [selectedSegment, setSelectedSegment] = useState<{ name: string; value: number; breakdown?: Record<string, number> } | null>(null);
+export default function DonutChart({ data = DEFAULT_DATA, onDateSelect }: DonutChartProps) {
+  const [selectedSegment, setSelectedSegment] = useState<{ name: string; value: number; breakdown?: Record<string, string[]> } | null>(null);
+  const [selectedScore, setSelectedScore] = useState<string | null>(null);
   const { isDark } = useDarkMode();
 
   const total    = data.reduce((s, e) => s + e.value, 0);
@@ -70,6 +80,7 @@ export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
     setSelectedSegment((prev) =>
       prev?.name === entry.name ? null : { name: entry.name, value: entry.value, breakdown: entry.breakdown },
     );
+    setSelectedScore(null);
   }
 
   return (
@@ -132,7 +143,7 @@ export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
               ({total > 0 ? Math.round((selectedSegment.value / total) * 100) : 0}%)
             </span>
             <button
-              onClick={() => setSelectedSegment(null)}
+              onClick={() => { setSelectedSegment(null); setSelectedScore(null); }}
               className="ml-1 text-slate-300 hover:text-slate-500 transition-colors text-xs leading-none"
               aria-label="Clear selection"
             >
@@ -140,22 +151,43 @@ export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
             </button>
           </div>
           {selectedSegment.breakdown && Object.keys(selectedSegment.breakdown).length > 0 && (
-            <div className="flex flex-wrap gap-1.5 justify-center pt-1 border-t border-slate-200 dark:border-slate-600 w-full">
-              {Object.entries(selectedSegment.breakdown)
-                .sort(([a], [b]) => {
-                  const aWins = Number(a.split('-')[0]);
-                  const bWins = Number(b.split('-')[0]);
-                  return bWins - aWins;
-                })
-                .map(([score, count]) => (
-                  <span
-                    key={score}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
+            <div className="pt-1 border-t border-slate-200 dark:border-slate-600 w-full">
+              {!selectedScore ? (
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                  {Object.entries(selectedSegment.breakdown)
+                    .sort(([a], [b]) => Number(b.split('-')[0]) - Number(a.split('-')[0]))
+                    .map(([score, dates]) => (
+                      <button
+                        key={score}
+                        onClick={() => setSelectedScore(score)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer"
+                      >
+                        <span className="font-bold">{score}</span>
+                        <span className="text-slate-400 dark:text-slate-500">×{dates.length}</span>
+                      </button>
+                    ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => setSelectedScore(null)}
+                    className="self-start text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center gap-1"
                   >
-                    <span className="font-bold">{score}</span>
-                    <span className="text-slate-400 dark:text-slate-500">×{count}</span>
-                  </span>
-                ))}
+                    ← Volver
+                  </button>
+                  <div className="max-h-32 overflow-y-auto flex flex-wrap gap-1.5">
+                    {(selectedSegment.breakdown[selectedScore] ?? []).map((fecha) => (
+                      <button
+                        key={fecha}
+                        onClick={() => onDateSelect?.(fecha)}
+                        className="px-2 py-0.5 rounded-md text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-medium"
+                      >
+                        {formatDateShort(fecha)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
