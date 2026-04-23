@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -53,20 +53,6 @@ function CentreLabel({
 }
 
 // ---------------------------------------------------------------------------
-// Custom tooltip
-// ---------------------------------------------------------------------------
-function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) {
-  if (!active || !payload?.length) return null;
-  const { name, value } = payload[0];
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-md text-xs">
-      <span className="font-semibold text-slate-800">{name}</span>
-      <span className="text-slate-500 ml-1.5">— {value} día{value !== 1 ? 's' : ''}</span>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
@@ -90,7 +76,6 @@ export default function DonutChart({ data = DEFAULT_DATA }: DonutChartProps) {
       {/* Donut */}
       <ResponsiveContainer width="100%" height={180}>
         <PieChart>
-          <Tooltip content={<CustomTooltip />} />
           <Pie
             data={data}
             cx="50%"
