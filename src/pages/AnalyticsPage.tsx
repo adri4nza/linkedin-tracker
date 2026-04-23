@@ -4,7 +4,7 @@ import MetricCard from '../components/MetricCard/MetricCard';
 import TrendChart from '../components/TrendChart/TrendChart';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
-import { timeToSeconds, secondsToTime } from '../utils/timeUtils';
+import { timeToSeconds, secondsToTime, calculateWinner } from '../utils/timeUtils';
 
 const CSV_URL = getActiveCsvUrl();
 
@@ -92,11 +92,9 @@ export default function AnalyticsPage() {
 
     let enriqueWins = 0, franciscoWins = 0;
     for (const { enrique, francisco } of dateMap.values()) {
-      if (!enrique || !francisco) continue;
-      const eT = timeToSeconds(enrique.Tiempo);
-      const fT = timeToSeconds(francisco.Tiempo);
-      if (eT < fT) enriqueWins++;
-      else if (fT < eT) franciscoWins++;
+      const result = calculateWinner(enrique, francisco);
+      if (result === 'a') enriqueWins++;
+      else if (result === 'b') franciscoWins++;
     }
 
     // Chart data sorted chronologically

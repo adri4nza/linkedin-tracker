@@ -5,7 +5,8 @@ import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
 import DonutChart from '../components/DonutChart/DonutChart';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
-import { timeToSeconds } from '../utils/timeUtils';
+import type { GameRecord } from '../hooks/useGamesData';
+import { calculateWinner } from '../utils/timeUtils';
 
 const CSV_URL = getActiveCsvUrl();
 
@@ -14,7 +15,7 @@ const PLAYER_COLOURS: Record<string, string> = {
   enrique: '#3b82f6',
   francisco: '#0f172a',
 };
-const FALLBACK_COLOURS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444'];
+
 
 // ── Date / time helpers ────────────────────────────────────────────────────
 function getTodayLocalDate(): string {
@@ -40,27 +41,54 @@ export default function DashboardPage() {
     return set;
   }, [data]);
 
-  // ── Compute win-rate percentages from total records per player ──────────
+  // ── Compute days won via per-day head-to-head ────────────────────────────
   const winRateData = useMemo(() => {
     if (!data.length) return [];
 
-    // Count records per player
-    const counts: Record<string, number> = {};
+    // Step 1: group records by date → game
+    const dateMap = new Map<string, Map<string, { enrique?: GameRecord; francisco?: GameRecord }>>();
     for (const row of data) {
-      const player = row.Jugador?.trim();
-      if (!player) continue;
-      counts[player] = (counts[player] ?? 0) + 1;
+      const fecha  = row.Fecha?.trim() ?? '';
+      const juego  = row.Juego?.trim() ?? '';
+      if (!dateMap.has(fecha)) dateMap.set(fecha, new Map());
+      const gameMap = dateMap.get(fecha)!;
+      if (!gameMap.has(juego)) gameMap.set(juego, {});
+      const entry  = gameMap.get(juego)!;
+      const player = row.Jugador?.trim().toLowerCase();
+      if (player === 'enrique')        entry.enrique   = row;
+      else if (player === 'francisco') entry.francisco = row;
     }
 
-    const total = Object.values(counts).reduce((s, n) => s + n, 0);
-    if (total === 0) return [];
+    // Step 2: for each day tally mini-game wins, then crown a day winner
+    let enriqueDays   = 0;
+    let franciscoDays = 0;
+    let tieDays       = 0;
 
-    let fallbackIndex = 0;
-    return Object.entries(counts).map(([name, count]) => ({
-      name,
-      value: Math.round((count / total) * 100),
-      color: PLAYER_COLOURS[name.toLowerCase()] ?? FALLBACK_COLOURS[fallbackIndex++ % FALLBACK_COLOURS.length],
-    }));
+    for (const gameMap of dateMap.values()) {
+      // Only count days where both players played the same number of mini-games
+      let eGames = 0, fGames = 0;
+      for (const { enrique, francisco } of gameMap.values()) {
+        if (enrique)   eGames++;
+        if (francisco) fGames++;
+      }
+      if (eGames !== fGames) continue;
+
+      let eWins = 0, fWins = 0;
+      for (const { enrique, francisco } of gameMap.values()) {
+        const result = calculateWinner(enrique, francisco);
+        if (result === 'a') eWins++;
+        else if (result === 'b') fWins++;
+      }
+      if (eWins > fWins)      enriqueDays++;
+      else if (fWins > eWins) franciscoDays++;
+      else                    tieDays++;
+    }
+
+    return [
+      { name: 'Francisco', value: franciscoDays, color: PLAYER_COLOURS['francisco'] },
+      { name: 'Enrique',   value: enriqueDays,   color: PLAYER_COLOURS['enrique']   },
+      { name: 'Empates',   value: tieDays,        color: '#94a3b8'                   },
+    ].filter((e) => e.value > 0);
   }, [data]);
 
   // ── Today's winner ───────────────────────────────────────────────────────
@@ -82,14 +110,11 @@ export default function DashboardPage() {
     let franciscoWins = 0;
 
     for (const records of gameMap.values()) {
-      const enrique  = records.find((r) => r.Jugador?.trim().toLowerCase() === 'enrique');
+      const enrique   = records.find((r) => r.Jugador?.trim().toLowerCase() === 'enrique');
       const francisco = records.find((r) => r.Jugador?.trim().toLowerCase() === 'francisco');
-      if (!enrique || !francisco) continue;
-
-      const eTime = timeToSeconds(enrique.Tiempo);
-      const fTime = timeToSeconds(francisco.Tiempo);
-      if (eTime < fTime) enriqueWins++;
-      else if (fTime < eTime) franciscoWins++;
+      const result    = calculateWinner(enrique, francisco);
+      if (result === 'a') enriqueWins++;
+      else if (result === 'b') franciscoWins++;
     }
 
     if (enriqueWins > franciscoWins) {
