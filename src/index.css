@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+/* Activa dark: variants basados en la clase .dark en <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Un fondo general suave para el modo corporativo */
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-slate-50 text-slate-900 transition-colors duration-200;
+  @apply dark:bg-slate-900 dark:text-slate-100;
 }
 
 .recharts-wrapper, .recharts-surface { outline: none !important; }

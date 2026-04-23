@@ -116,7 +116,7 @@ export default function ResultsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
         <AlertCircle size={32} className="text-red-400" />
-        <p className="text-sm font-semibold text-slate-700">Failed to load data</p>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Failed to load data</p>
         <p className="text-xs text-slate-400 max-w-xs">{error}</p>
       </div>
     );
@@ -127,7 +127,7 @@ export default function ResultsPage() {
     <>
       {/* Page intro */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900">Game History</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Game History</h1>
         <p className="text-sm text-blue-500 font-medium">
           {filtered.length} record{filtered.length !== 1 ? 's' : ''}
           {filtered.length !== data.length && ` of ${data.length}`}
@@ -144,7 +144,7 @@ export default function ResultsPage() {
             placeholder="Search player or game…"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl shadow-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
 
@@ -152,7 +152,7 @@ export default function ResultsPage() {
         <select
           value={gameFilter}
           onChange={(e) => handleGameFilter(e.target.value as GameFilter)}
-          className="text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           {GAMES.map((g) => (
             <option key={g} value={g}>{g === 'All' ? 'All Games' : g}</option>
@@ -161,11 +161,11 @@ export default function ResultsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors duration-200">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50 text-left">
+              <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 text-left">
                 {(
                   [
                     { key: 'Fecha',   label: 'Date' },
@@ -175,29 +175,29 @@ export default function ResultsPage() {
                 ).map(({ key, label }) => (
                   <th
                     key={key}
-                    className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap hover:text-slate-800 transition-colors"
+                    className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
                     onClick={() => handleSort(key)}
                   >
                     {label}
                     <SortIcon col={key} active={sortCol} dir={sortDir} />
                   </th>
                 ))}
-                <th className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                <th className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">
                   Ed.
                 </th>
                 <th
-                  className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap hover:text-slate-800 transition-colors"
+                  className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
                   onClick={() => handleSort('Tiempo')}
                 >
                   Time
                   <SortIcon col="Tiempo" active={sortCol} dir={sortDir} />
                 </th>
-                <th className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wide text-center">
+                <th className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide text-center">
                   ✨
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
               {pageRows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-3 py-10 text-center text-sm text-slate-400">
@@ -206,12 +206,12 @@ export default function ResultsPage() {
                 </tr>
               ) : (
                 pageRows.map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{row.Fecha?.trim()}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">{row.Jugador?.trim()}</td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{row.Juego?.trim()}</td>
+                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.Fecha?.trim()}</td>
+                    <td className="px-3 py-2 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">{row.Jugador?.trim()}</td>
+                    <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.Juego?.trim()}</td>
                     <td className="px-3 py-2 text-slate-400 text-xs whitespace-nowrap">{row['Edición (n.º)']?.trim()}</td>
-                    <td className="px-3 py-2 font-mono font-semibold text-slate-800 whitespace-nowrap">{row.Tiempo?.trim()}</td>
+                    <td className="px-3 py-2 font-mono font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{row.Tiempo?.trim()}</td>
                     <td className="px-3 py-2 text-center">
                       {isFlawless(row['Sin Fallos']) && <span title="Flawless">✨</span>}
                     </td>
@@ -223,22 +223,22 @@ export default function ResultsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-700">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={safePage <= 1}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             ← Previous
           </button>
-          <span className="text-xs text-slate-500">
-            Page <span className="font-semibold text-slate-700">{safePage}</span> of{' '}
-            <span className="font-semibold text-slate-700">{totalPages}</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Page <span className="font-semibold text-slate-700 dark:text-slate-200">{safePage}</span> of{' '}
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{totalPages}</span>
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={safePage >= totalPages}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Next →
           </button>

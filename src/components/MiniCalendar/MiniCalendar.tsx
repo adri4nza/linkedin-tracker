@@ -79,23 +79,23 @@ export default function MiniCalendar({
     year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
       {/* Month / Year header */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-bold text-slate-800">
+        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
           {MONTH_NAMES[month]} {year}
         </p>
         <div className="flex items-center gap-0.5">
           <button
             onClick={prevMonth}
-            className="p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             aria-label="Previous month"
           >
             <ChevronLeft size={16} className="text-slate-500" />
           </button>
           <button
             onClick={nextMonth}
-            className="p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             aria-label="Next month"
           >
             <ChevronRight size={16} className="text-slate-500" />
@@ -117,7 +117,7 @@ export default function MiniCalendar({
         {/* Prev-month tail */}
         {prevDays.map((d) => (
           <div key={`prev-${d}`} className="flex items-center justify-center h-8">
-            <span className="text-xs text-slate-300">{d}</span>
+            <span className="text-xs text-slate-300 dark:text-slate-600">{d}</span>
           </div>
         ))}
 
@@ -137,7 +137,7 @@ export default function MiniCalendar({
                   ? 'bg-blue-500 text-white font-bold'
                   : todayMark
                   ? 'border border-blue-300 text-blue-600'
-                  : 'text-slate-700 hover:bg-slate-100'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
             >
               {d}
@@ -154,7 +154,7 @@ export default function MiniCalendar({
         {/* Next-month lead */}
         {nextDays.map((d) => (
           <div key={`next-${d}`} className="flex items-center justify-center h-8">
-            <span className="text-xs text-slate-300">{d}</span>
+            <span className="text-xs text-slate-300 dark:text-slate-600">{d}</span>
           </div>
         ))}
       </div>

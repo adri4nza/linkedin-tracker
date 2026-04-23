@@ -12,10 +12,10 @@ export default function WinnerCard({ winner, score, streakDays = 0 }: WinnerCard
   const isTie   = winner === 'Tie';
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
       <div className="flex items-center gap-4">
         {/* Trophy icon container */}
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${noGames ? 'bg-slate-50' : 'bg-blue-50'}`}>
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${noGames ? 'bg-slate-50 dark:bg-slate-700' : 'bg-blue-50 dark:bg-blue-900/30'}`}>
           <Trophy size={26} className={noGames ? 'text-slate-300' : 'text-blue-500'} />
         </div>
 
@@ -27,12 +27,12 @@ export default function WinnerCard({ winner, score, streakDays = 0 }: WinnerCard
           {noGames ? (
             <p className="text-sm font-medium text-slate-400">No games played yet today</p>
           ) : isTie ? (
-            <p className="text-sm font-bold text-slate-800">
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
               Tied today{' '}
               <span className="text-blue-600">{score}</span>
             </p>
           ) : (
-            <p className="text-sm font-bold text-slate-800">
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
               {winner} won today{' '}
               <span className="text-blue-600">{score}</span>
             </p>

@@ -34,30 +34,30 @@ export default function MetricCard({
   trend,
 }: MetricCardProps) {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
       {/* Label row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           {icon && <span className="text-slate-400">{icon}</span>}
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
             {label}
           </span>
         </div>
         {badge && (
-          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 px-2 py-0.5 rounded-full">
             {badge}
           </span>
         )}
       </div>
 
       {/* Main value */}
-      <p className="text-4xl font-bold text-slate-900 tracking-tight leading-none">{value}</p>
+      <p className="text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">{value}</p>
 
       {/* "Held by" subtitle */}
       {heldBy && (
-        <p className="flex items-center gap-1.5 text-sm text-slate-500 mt-1.5">
-          <span className="inline-block w-2 h-2 rounded-full bg-slate-400" />
-          Held by <span className="font-semibold text-slate-700">{heldBy}</span>
+        <p className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 mt-1.5">
+          <span className="inline-block w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500" />
+          Held by <span className="font-semibold text-slate-700 dark:text-slate-200">{heldBy}</span>
         </p>
       )}
 
@@ -77,12 +77,12 @@ export default function MetricCard({
               <div className="flex items-center gap-2">
                 <span
                   className={`inline-block w-2 h-2 rounded-full ${
-                    item.variant === 'blue' ? 'bg-blue-500' : 'bg-slate-900'
+                    item.variant === 'blue' ? 'bg-blue-500' : 'bg-slate-900 dark:bg-slate-200'
                   }`}
                 />
-                <span className="text-sm text-slate-600">{item.name}</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">{item.name}</span>
               </div>
-              <span className="text-sm font-semibold text-slate-800">{item.value}</span>
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{item.value}</span>
             </div>
           ))}
         </div>

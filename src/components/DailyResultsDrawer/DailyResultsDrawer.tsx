@@ -65,12 +65,12 @@ function PlayerRow({
 }) {
   return (
     <div className="flex items-center justify-between py-1">
-      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
       <div className="flex items-center gap-1.5">
         {hasFlawless && <span className="text-sm">✨</span>}
         <span
           className={`text-sm font-semibold ${
-            isWinner ? 'text-blue-500' : 'text-slate-700'
+            isWinner ? 'text-blue-500' : 'text-slate-700 dark:text-slate-200'
           }`}
         >
           {value}
@@ -82,12 +82,12 @@ function PlayerRow({
 
 function GameCard({ game }: { game: ComputedGame }) {
   return (
-    <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-100">
-      <div className="flex items-center gap-2 mb-2 text-slate-600">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl px-4 py-3 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
+      <div className="flex items-center gap-2 mb-2 text-slate-600 dark:text-slate-400">
         {game.icon}
-        <span className="text-sm font-semibold text-slate-700">{game.name}</span>
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{game.name}</span>
       </div>
-      <div className="divide-y divide-slate-50">
+      <div className="divide-y divide-slate-50 dark:divide-slate-700">
         <PlayerRow
           label="Francisco"
           value={game.franciscoTime}
@@ -177,26 +177,26 @@ export default function DailyResultsDrawer({
 
       {/* Drawer panel — slides in from the right */}
       <aside
-        className={`fixed top-0 right-0 h-full w-80 max-w-full bg-slate-50 z-50 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-full bg-slate-50 dark:bg-slate-900 z-50 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         aria-label="Daily game results"
       >
         {/* Header */}
-        <div className="bg-white px-5 py-4 border-b border-slate-100 shrink-0">
+        <div className="bg-white dark:bg-slate-800 px-5 py-4 border-b border-slate-100 dark:border-slate-700 shrink-0">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-base font-bold text-slate-800">{displayDate}</p>
+              <p className="text-base font-bold text-slate-800 dark:text-slate-100">{displayDate}</p>
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
                 Game Results
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors mt-0.5"
+              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors mt-0.5"
               aria-label="Close results panel"
             >
-              <X size={18} className="text-slate-500" />
+              <X size={18} className="text-slate-500 dark:text-slate-400" />
             </button>
           </div>
         </div>
@@ -204,9 +204,9 @@ export default function DailyResultsDrawer({
         {/* Win banner — only when there are games */}
         {gameResults.length > 0 && (
           <div className="mx-4 mt-4 shrink-0">
-            <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 rounded-2xl px-4 py-3">
               <Trophy size={20} className="text-blue-500 shrink-0" />
-              <p className="text-sm font-bold text-slate-800">
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
                 {winnerBanner.text}{' '}
                 <span className="text-blue-600">{winnerBanner.score}</span>
               </p>

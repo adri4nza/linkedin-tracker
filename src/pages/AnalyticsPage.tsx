@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
         <AlertCircle size={32} className="text-red-400" />
-        <p className="text-sm font-semibold text-slate-700">Failed to load data</p>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Failed to load data</p>
         <p className="text-xs text-slate-400 max-w-xs">{error}</p>
       </div>
     );
@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
     <>
       {/* Page intro */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900">Performance Overview</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Performance Overview</h1>
         <p className="text-sm text-blue-500 font-medium">
           Real-time metrics and comparative analysis.
         </p>
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
         <select
           value={selectedGame}
           onChange={(e) => setSelectedGame(e.target.value as Game)}
-          className="text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           {GAMES.map((g) => (
             <option key={g} value={g}>{g}</option>
@@ -170,7 +170,7 @@ export default function AnalyticsPage() {
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-          className="text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           {TIME_RANGES.map((r) => (
             <option key={r} value={r}>{r}</option>

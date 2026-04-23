@@ -146,7 +146,7 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
         <AlertCircle size={32} className="text-red-400" />
-        <p className="text-sm font-semibold text-slate-700">Failed to load data</p>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Failed to load data</p>
         <p className="text-xs text-slate-400 max-w-xs">{error}</p>
       </div>
     );

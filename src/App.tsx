@@ -4,8 +4,11 @@ import DashboardPage from './pages/DashboardPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ResultsPage from './pages/ResultsPage';
 import SettingsPage from './pages/SettingsPage';
+import { useDarkMode } from './hooks/useDarkMode';
 
 function App() {
+  useDarkMode();
+
   return (
     <BrowserRouter>
       <Routes>
