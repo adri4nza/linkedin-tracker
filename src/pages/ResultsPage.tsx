@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Loader2, AlertCircle, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
+import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
 import { timeToSeconds, isFlawless } from '../utils/timeUtils';
 
 const CSV_URL = getActiveCsvUrl();
@@ -43,6 +44,7 @@ export default function ResultsPage() {
   const [sortCol, setSortCol]         = useState<SortCol>('Fecha');
   const [sortDir, setSortDir]         = useState<SortDir>('desc');
   const [page, setPage]               = useState(1);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const { data, isLoading, error } = useGamesData(CSV_URL);
 
@@ -206,7 +208,11 @@ export default function ResultsPage() {
                 </tr>
               ) : (
                 pageRows.map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <tr
+                    key={i}
+                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    onClick={() => setSelectedDate(row.Fecha?.trim() ?? null)}
+                  >
                     <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.Fecha?.trim()}</td>
                     <td className="px-3 py-2 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">{row.Jugador?.trim()}</td>
                     <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.Juego?.trim()}</td>
@@ -244,6 +250,12 @@ export default function ResultsPage() {
           </button>
         </div>
       </div>
+      <DailyResultsDrawer
+        isOpen={selectedDate !== null}
+        onClose={() => setSelectedDate(null)}
+        selectedDate={selectedDate}
+        data={data}
+      />
     </>
   );
 }

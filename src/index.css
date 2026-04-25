@@ -10,3 +10,12 @@ body {
 }
 
 .recharts-wrapper, .recharts-surface { outline: none !important; }
+
+/* Hide scrollbar while keeping scroll functionality */
+.hide-scrollbar {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE / Edge */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;                  /* Chrome / Safari */
+}

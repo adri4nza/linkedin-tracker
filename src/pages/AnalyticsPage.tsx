@@ -15,7 +15,7 @@ const CSV_URL = getActiveCsvUrl();
 const GAMES = ['Zip', 'Tango', 'Queens', 'Mini Sudoku', 'Patches'] as const;
 type Game = (typeof GAMES)[number];
 
-const TIME_RANGES = ['Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'All Time'] as const;
+const TIME_RANGES = ['Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'All Time', 'Custom'] as const;
 type TimeRange = (typeof TIME_RANGES)[number];
 
 // ---------------------------------------------------------------------------
@@ -41,6 +41,8 @@ function getRangeStart(range: TimeRange): string | null {
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('Last 30 Days');
   const [selectedGame, setSelectedGame] = useState<Game>('Queens');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd,   setCustomEnd]   = useState('');
 
   const { data, isLoading, error } = useGamesData(CSV_URL);
   const { colors } = usePlayerColors();
@@ -50,10 +52,16 @@ export default function AnalyticsPage() {
     const rangeStart = getRangeStart(timeRange);
     return data.filter((row) => {
       if (row.Juego?.trim() !== selectedGame) return false;
-      if (rangeStart && (row.Fecha?.trim() ?? '') < rangeStart) return false;
+      const fecha = row.Fecha?.trim() ?? '';
+      if (timeRange === 'Custom') {
+        if (customStart && fecha < customStart) return false;
+        if (customEnd   && fecha > customEnd)   return false;
+      } else if (rangeStart && fecha < rangeStart) {
+        return false;
+      }
       return true;
     });
-  }, [data, selectedGame, timeRange]);
+  }, [data, selectedGame, timeRange, customStart, customEnd]);
 
   // ── Compute all stats ────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -177,6 +185,25 @@ export default function AnalyticsPage() {
           ))}
         </select>
       </div>
+
+      {/* Custom date range inputs */}
+      {timeRange === 'Custom' && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            type="date"
+            value={customStart}
+            onChange={(e) => setCustomStart(e.target.value)}
+            className="text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <span className="text-sm text-slate-400">–</span>
+          <input
+            type="date"
+            value={customEnd}
+            onChange={(e) => setCustomEnd(e.target.value)}
+            className="text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+      )}
 
       {/* ── Metric Cards ── */}
       {!stats ? (
