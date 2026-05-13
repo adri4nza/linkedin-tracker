@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Loader2, AlertCircle, Trophy } from 'lucide-react';
-import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
+import MiniCalendar, { type MonthlyStats } from '../components/MiniCalendar/MiniCalendar';
 import DonutChart from '../components/DonutChart/DonutChart';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
@@ -20,6 +20,10 @@ function formatDisplayDate(iso: string): string {
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState<{ month: number; year: number }>(() => {
+    const today = new Date();
+    return { month: today.getMonth(), year: today.getFullYear() };
+  });
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error } = useGamesData(CSV_URL);
@@ -111,11 +115,46 @@ export default function DashboardPage() {
   // Derive the set of dates that have any records (for handleDayClick check)
   const datesWithData = useMemo(() => new Set(dateColorMap.keys()), [dateColorMap]);
 
+  // Compute monthly statistics for the current calendar view
+  const monthlyStats: MonthlyStats | undefined = useMemo(() => {
+    if (!data.length) return undefined;
+
+    const targetYear = calendarMonth.year;
+    const targetMonth = calendarMonth.month + 1; // Convert to 1-based
+    const monthPrefix = `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+
+    let enriqueWins = 0;
+    let franciscoWins = 0;
+    let ties = 0;
+
+    // Filter dates in the current month
+    for (const [fecha, color] of dateColorMap.entries()) {
+      if (fecha.startsWith(monthPrefix)) {
+        if (color === colors.enrique) enriqueWins++;
+        else if (color === colors.francisco) franciscoWins++;
+        else if (color === TIE_COLOUR) ties++;
+      }
+    }
+
+    return {
+      enriqueWins,
+      franciscoWins,
+      ties,
+      enriqueColor: colors.enrique,
+      franciscoColor: colors.francisco,
+      tieColor: TIE_COLOUR,
+    };
+  }, [data, dateColorMap, calendarMonth, colors]);
+
   function handleDayClick(day: number, month: number, year: number) {
     const mm  = String(month + 1).padStart(2, '0');
     const dd  = String(day).padStart(2, '0');
     const iso = `${year}-${mm}-${dd}`;
     if (datesWithData.has(iso)) setSelectedDate(iso);
+  }
+
+  function handleMonthChange(month: number, year: number) {
+    setCalendarMonth({ month, year });
   }
 
   // ── Loading state ────────────────────────────────────────────────────────
@@ -191,6 +230,8 @@ export default function DashboardPage() {
         datesWithData={datesWithData}
         dateColorMap={dateColorMap}
         onDayClick={handleDayClick}
+        onMonthChange={handleMonthChange}
+        monthlyStats={monthlyStats}
       />
       <DonutChart data={winRateData.length ? winRateData : undefined} onDateSelect={setSelectedDate} />
 

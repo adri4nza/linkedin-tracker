@@ -24,6 +24,15 @@ function daysInMonth(year: number, month: number): number {
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
+export interface MonthlyStats {
+  enriqueWins: number;
+  franciscoWins: number;
+  ties: number;
+  enriqueColor: string;
+  franciscoColor: string;
+  tieColor: string;
+}
+
 interface MiniCalendarProps {
   /** Initially highlighted day (1-based). Defaults to today. */
   highlightedDay?: number;
@@ -33,10 +42,14 @@ interface MiniCalendarProps {
   initialYear?: number;
   /** Called when the user clicks a day in the current month. */
   onDayClick?: (day: number, month: number, year: number) => void;
+  /** Called when the calendar month/year changes. */
+  onMonthChange?: (month: number, year: number) => void;
   /** Set of ISO date strings (YYYY-MM-DD) that have game records. Used to render indicator dots. */
   datesWithData?: Set<string>;
   /** Map of ISO date string → hex color for the indicator dot. Overrides default blue when provided. */
   dateColorMap?: Map<string, string>;
+  /** Monthly statistics to display in the calendar */
+  monthlyStats?: MonthlyStats;
 }
 
 // ---------------------------------------------------------------------------
@@ -47,8 +60,10 @@ export default function MiniCalendar({
   initialMonth,
   initialYear,
   onDayClick,
+  onMonthChange,
   datesWithData,
   dateColorMap,
+  monthlyStats,
 }: MiniCalendarProps) {
   const today = new Date();
   const [year, setYear] = useState(initialYear ?? today.getFullYear());
@@ -56,12 +71,24 @@ export default function MiniCalendar({
   const [selected, setSelected] = useState(highlightedDay ?? today.getDate());
 
   const prevMonth = () => {
-    if (month === 0) { setMonth(11); setYear((y) => y - 1); }
-    else setMonth((m) => m - 1);
+    if (month === 0) {
+      setMonth(11);
+      setYear((y) => y - 1);
+      onMonthChange?.(11, year - 1);
+    } else {
+      setMonth((m) => m - 1);
+      onMonthChange?.(month - 1, year);
+    }
   };
   const nextMonth = () => {
-    if (month === 11) { setMonth(0); setYear((y) => y + 1); }
-    else setMonth((m) => m + 1);
+    if (month === 11) {
+      setMonth(0);
+      setYear((y) => y + 1);
+      onMonthChange?.(0, year + 1);
+    } else {
+      setMonth((m) => m + 1);
+      onMonthChange?.(month + 1, year);
+    }
   };
 
   const offset = firstDayOffset(year, month);
@@ -158,6 +185,65 @@ export default function MiniCalendar({
           </div>
         ))}
       </div>
+
+      {/* Monthly Statistics */}
+      {monthlyStats && (monthlyStats.enriqueWins > 0 || monthlyStats.franciscoWins > 0 || monthlyStats.ties > 0) && (
+        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+            Monthly Stats
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {monthlyStats.enriqueWins > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: monthlyStats.enriqueColor }}
+                  />
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Enrique
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                  {monthlyStats.enriqueWins}
+                </span>
+              </div>
+            )}
+            {monthlyStats.franciscoWins > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: monthlyStats.franciscoColor }}
+                  />
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Francisco
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                  {monthlyStats.franciscoWins}
+                </span>
+              </div>
+            )}
+            {monthlyStats.ties > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: monthlyStats.tieColor }}
+                  />
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Empates
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                  {monthlyStats.ties}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
