@@ -2,9 +2,13 @@ import { useState, useMemo } from 'react';
 import { Trophy, Clock, CheckCircle, Calendar, Loader2, AlertCircle } from 'lucide-react';
 import MetricCard from '../components/MetricCard/MetricCard';
 import TrendChart from '../components/TrendChart/TrendChart';
+import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
+import MonthlyTally from '../components/MonthlyTally/MonthlyTally';
+import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
 import { timeToSeconds, secondsToTime, calculateWinner } from '../utils/timeUtils';
+import { buildGameColorMap, computeGameMonthlyTally } from '../utils/gameHeatmap';
 import { usePlayerColors } from '../hooks/usePlayerColors';
 
 const CSV_URL = getActiveCsvUrl();
@@ -43,6 +47,14 @@ export default function AnalyticsPage() {
   const [selectedGame, setSelectedGame] = useState<Game>('Queens');
   const [customStart, setCustomStart] = useState('');
   const [customEnd,   setCustomEnd]   = useState('');
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  // Month/year currently visible in the heatmap calendar, kept in sync via its
+  // onMonthChange callback. Drives the per-game MonthlyTally. Initialised to the
+  // current system month/year so the first render already matches the calendar.
+  const now = new Date();
+  const [visibleMonth, setVisibleMonth] = useState(now.getMonth());
+  const [visibleYear,  setVisibleYear]  = useState(now.getFullYear());
 
   const { data, isLoading, error } = useGamesData(CSV_URL);
   const { colors } = usePlayerColors();
@@ -130,6 +142,41 @@ export default function AnalyticsPage() {
     };
   }, [filteredRecords, selectedGame]);
 
+  // ── Heatmap colour map (independent of the temporal range filter) ─────────
+  // Always derived from the COMPLETE `data` (never `filteredRecords`), so the
+  // heatmap's own month navigation can roam the full history regardless of the
+  // Last 7/30/90 Days / Custom selector. Recomputed only when the data, the
+  // selected game, or the player colours change.
+  const heatmapColorMap = useMemo(
+    () => buildGameColorMap(data, selectedGame, colors),
+    [data, selectedGame, colors],
+  );
+
+  // Dates that have ANY record (across all games) — used to gate calendar clicks.
+  const datesWithData = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of data) {
+      const fecha = row.Fecha?.trim();
+      if (fecha) set.add(fecha);
+    }
+    return set;
+  }, [data]);
+
+  // Click a heatmap day → open the drawer with ALL of that day's results.
+  function handleDayClick(day: number, month: number, year: number) {
+    const mm  = String(month + 1).padStart(2, '0');
+    const dd  = String(day).padStart(2, '0');
+    const iso = `${year}-${mm}-${dd}`;
+    if (datesWithData.has(iso)) setSelectedDate(iso);
+  }
+
+  // Per-game day-win tally for the month currently visible in the heatmap.
+  // Derived from the COMPLETE data (independent of the range filter).
+  const gameTally = useMemo(
+    () => computeGameMonthlyTally(data, selectedGame, visibleMonth, visibleYear),
+    [data, selectedGame, visibleMonth, visibleYear],
+  );
+
   // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -205,6 +252,17 @@ export default function AnalyticsPage() {
         </div>
       )}
 
+      {/* ── Heatmap calendar (per-game winner colours) ── */}
+      <div className="space-y-2">
+        <MonthlyTally tally={gameTally} colors={colors} />
+        <MiniCalendar
+          dateColorMap={heatmapColorMap}
+          datesWithData={datesWithData}
+          onDayClick={handleDayClick}
+          onMonthChange={(m, y) => { setVisibleMonth(m); setVisibleYear(y); }}
+        />
+      </div>
+
       {/* ── Metric Cards ── */}
       {!stats ? (
         <p className="text-sm text-slate-400 text-center py-8">
@@ -246,6 +304,13 @@ export default function AnalyticsPage() {
           <TrendChart data={stats.chartData} colors={colors} />
         </>
       )}
+
+      <DailyResultsDrawer
+        isOpen={selectedDate !== null}
+        onClose={() => setSelectedDate(null)}
+        selectedDate={selectedDate}
+        data={data}
+      />
     </>
   );
 }
