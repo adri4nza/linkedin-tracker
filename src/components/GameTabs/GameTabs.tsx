@@ -8,18 +8,22 @@ export type AnalyticsTab =
   | 'Mini Sudoku'
   | 'Patches';
 
-export interface GameTabsProps {
+export interface GameTabsProps<T extends string> {
   /** Ordered list of tabs to render. */
-  tabs: AnalyticsTab[];
+  tabs: T[];
   /** Currently active tab. */
-  active: AnalyticsTab;
+  active: T;
   /** Called when the user activates a tab. */
-  onChange: (tab: AnalyticsTab) => void;
+  onChange: (tab: T) => void;
+  /** Accessible label for the tablist container. */
+  ariaLabel?: string;
 }
 
 /**
- * Accessible tab bar for selecting the analytics view (Req 4.2, 4.5, 4.8).
+ * Accessible, reusable tab bar (Req 4.2, 4.5, 4.8).
  *
+ * Generic over the tab value type `T` so it can drive any single-select
+ * segmented control (e.g. the analytics game tabs and the time-range tabs).
  * Pure presentation/interaction component — it holds no data logic.
  *
  * Activation pattern: this component uses **automatic activation**. Moving the
@@ -36,7 +40,12 @@ export interface GameTabsProps {
  *   activate the destination tab.
  * - Enter / Space activate the focused tab.
  */
-export default function GameTabs({ tabs, active, onChange }: GameTabsProps) {
+export default function GameTabs<T extends string>({
+  tabs,
+  active,
+  onChange,
+  ariaLabel = 'Tabs',
+}: GameTabsProps<T>) {
   const buttonsRef = useRef<Array<HTMLButtonElement | null>>([]);
 
   const focusTab = (index: number) => {
@@ -86,8 +95,8 @@ export default function GameTabs({ tabs, active, onChange }: GameTabsProps) {
   return (
     <div
       role="tablist"
-      aria-label="Selección de juego"
-      className="flex items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 transition-colors duration-200 [scrollbar-width:thin]"
+      aria-label={ariaLabel}
+      className="flex items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 transition-colors duration-200 hide-scrollbar"
     >
       {tabs.map((tab, index) => {
         const isActive = tab === active;

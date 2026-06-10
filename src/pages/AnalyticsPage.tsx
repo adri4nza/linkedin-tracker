@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Trophy, Clock, CheckCircle, Calendar, Loader2, AlertCircle } from 'lucide-react';
+import { Trophy, Clock, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import MetricCard from '../components/MetricCard/MetricCard';
 import TrendChart from '../components/TrendChart/TrendChart';
 import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
@@ -20,8 +20,9 @@ const CSV_URL = getActiveCsvUrl();
 /** The five analytics tabs, in display order — one per minigame. */
 const TABS: AnalyticsTab[] = ['Zip', 'Tango', 'Queens', 'Mini Sudoku', 'Patches'];
 
-const TIME_RANGES = ['Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'All Time', 'Custom'] as const;
-type TimeRange = (typeof TIME_RANGES)[number];
+/** Time-range tabs, in display order. */
+const TIME_RANGE_TABS = ['Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'All Time', 'Custom'] as const;
+type TimeRange = (typeof TIME_RANGE_TABS)[number];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -143,22 +144,15 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Game tabs */}
-      <GameTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
+      <GameTabs<AnalyticsTab> tabs={TABS} active={activeTab} onChange={setActiveTab} ariaLabel="Selección de juego" />
 
-      {/* Time range selector */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Calendar size={15} className="text-slate-400 shrink-0" />
-
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-          className="text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          {TIME_RANGES.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
-      </div>
+      {/* Time range tabs */}
+      <GameTabs<TimeRange>
+        tabs={[...TIME_RANGE_TABS]}
+        active={timeRange}
+        onChange={setTimeRange}
+        ariaLabel="Rango temporal"
+      />
 
       {/* Custom date range inputs */}
       {timeRange === 'Custom' && (
