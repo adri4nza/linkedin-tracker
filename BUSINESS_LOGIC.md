@@ -176,21 +176,24 @@ En `src/pages/AnalyticsPage.tsx`, filtrando por minijuego y rango de fechas:
 
 ---
 
-## 6. Detalle por día (DailyResultsDrawer) — discrepancia conocida
+## 6. Detalle por día (DailyResultsDrawer)
 
-El panel `DailyResultsDrawer` muestra el ganador de cada minijuego del día seleccionado, pero **no usa `calculateWinner`**: aplica una comparación **solo por tiempo**:
+El panel `DailyResultsDrawer` muestra el ganador de cada minijuego del día seleccionado y, desde la unificación de la lógica, **delega en `calculateWinner`** (misma función que el Win Rate oficial), por lo que aplica las reglas completas de la sección 3 (menor tiempo, victoria por abandono y desempate por flawless ✨):
 
 ```ts
 // DailyResultsDrawer.tsx
+// calculateWinner(francisco, enrique) → 'a' = francisco, 'b' = enrique.
+const result = calculateWinner(francisco, enrique);
 const winner: Player | undefined =
-  eTime < fTime ? 'enrique' : fTime < eTime ? 'francisco' : undefined;
+  result === 'a' ? 'francisco' : result === 'b' ? 'enrique' : undefined;
 ```
 
-Implicaciones frente a las reglas centrales de la sección 3:
-- **Abandono:** se comporta igual que `calculateWinner` (un `Infinity` pierde contra un tiempo finito), porque `Infinity < finito` es falso.
-- **Desempate flawless:** **no se aplica**. En un empate exacto de segundos, el drawer marca `undefined` (sin ganador visual) aunque uno sea ✨, mientras que `calculateWinner` sí otorgaría la victoria al flawless.
+Comportamiento garantizado, en total sincronía con el cómputo de "días ganados":
+- **Abandono:** un `Infinity` (tiempo ausente) pierde contra cualquier tiempo finito.
+- **Desempate flawless:** ante empate exacto de segundos, gana quien sea ✨; si ambos o ninguno lo son, no hay ganador visual (`undefined`).
+- **Empate / sin disputa:** `'tie'` y `null` se mapean a `undefined` (sin ganador resaltado).
 
-Por tanto, el marcador del banner del drawer puede diferir del cómputo oficial de "días ganados" en casos de empate con desempate por flawless. Si se busca total consistencia, el drawer debería delegar también en `calculateWinner`.
+El banner superior del drawer tallea estos ganadores por minijuego, de modo que su marcador coincide con la evaluación oficial.
 
 ---
 

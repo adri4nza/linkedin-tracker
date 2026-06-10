@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { X, Trophy, Zap, Music, Crown, Grid2X2, Puzzle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { GameRecord } from '../../hooks/useGamesData';
-import { timeToSeconds, isFlawless } from '../../utils/timeUtils';
+import { calculateWinner, isFlawless } from '../../utils/timeUtils';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -133,10 +133,12 @@ export default function DailyResultsDrawer({
     }
 
     return [...gameMap.entries()].map(([name, { enrique, francisco }]) => {
-      const eTime = timeToSeconds(enrique?.Tiempo ?? '');
-      const fTime = timeToSeconds(francisco?.Tiempo ?? '');
+      // Centralized head-to-head resolution: lower time wins, victory by
+      // forfeit (missing time) and flawless (✨) tiebreaker on exact ties.
+      // calculateWinner(francisco, enrique) → 'a' = francisco, 'b' = enrique.
+      const result = calculateWinner(francisco, enrique);
       const winner: Player | undefined =
-        eTime < fTime ? 'enrique' : fTime < eTime ? 'francisco' : undefined;
+        result === 'a' ? 'francisco' : result === 'b' ? 'enrique' : undefined;
       return {
         id:               name.toLowerCase().replace(/\s+/g, '-'),
         name,

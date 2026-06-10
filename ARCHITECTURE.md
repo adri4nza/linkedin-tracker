@@ -144,6 +144,6 @@ Al pulsar una fecha se llama `onDateSelect(fecha)`, que en `DashboardPage` setea
 
 ## 8. Notas y consideraciones
 
-- **Coherencia del cálculo de ganador por juego:** la regla completa (abandono + desempate flawless) vive en `calculateWinner` (`utils/timeUtils.ts`) y la usan `DashboardPage` y `AnalyticsPage`. El `DailyResultsDrawer` aplica una variante **solo por tiempo** para mostrar el ganador visual de cada tarjeta (ver detalle en `BUSINESS_LOGIC.md`).
+- **Coherencia del cálculo de ganador por juego:** la regla completa (abandono + desempate flawless) vive en `calculateWinner` (`utils/timeUtils.ts`) y es la **única fuente de verdad**. La usan `DashboardPage`, `AnalyticsPage` y el `DailyResultsDrawer`, de modo que el detalle por día queda sincronizado con el cómputo oficial de "días ganados".
 - **Recarga tras cambios de preferencias:** por el patrón de `getActiveCsvUrl()` a nivel de módulo y de `usePlayerColors` (lectura memoizada al montar), los cambios de URL y de colores se aplican recargando la página, lo que `SettingsPage` hace automáticamente.
 - **Sin tests automatizados** en el repositorio al momento de escribir este documento.
