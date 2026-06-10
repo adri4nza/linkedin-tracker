@@ -4,11 +4,12 @@ import MetricCard from '../components/MetricCard/MetricCard';
 import TrendChart from '../components/TrendChart/TrendChart';
 import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
 import MonthlyTally from '../components/MonthlyTally/MonthlyTally';
+import GameTabs from '../components/GameTabs/GameTabs';
+import type { AnalyticsTab } from '../components/GameTabs/GameTabs';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
-import type { GameRecord } from '../hooks/useGamesData';
-import { timeToSeconds, secondsToTime, calculateWinner } from '../utils/timeUtils';
 import { buildGameColorMap, computeGameMonthlyTally } from '../utils/gameHeatmap';
+import { computeGameStats } from '../utils/analyticsStats';
 import { usePlayerColors } from '../hooks/usePlayerColors';
 
 const CSV_URL = getActiveCsvUrl();
@@ -16,8 +17,8 @@ const CSV_URL = getActiveCsvUrl();
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const GAMES = ['Zip', 'Tango', 'Queens', 'Mini Sudoku', 'Patches'] as const;
-type Game = (typeof GAMES)[number];
+/** The five analytics tabs, in display order — one per minigame. */
+const TABS: AnalyticsTab[] = ['Zip', 'Tango', 'Queens', 'Mini Sudoku', 'Patches'];
 
 const TIME_RANGES = ['Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'All Time', 'Custom'] as const;
 type TimeRange = (typeof TIME_RANGES)[number];
@@ -25,12 +26,6 @@ type TimeRange = (typeof TIME_RANGES)[number];
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-function isoToChartDate(iso: string): string {
-  const [, month, day] = iso.split('-').map(Number);
-  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${MONTHS[month - 1]} ${day}`;
-}
-
 function getRangeStart(range: TimeRange): string | null {
   if (range === 'All Time') return null;
   const days = range === 'Last 7 Days' ? 7 : range === 'Last 30 Days' ? 30 : 90;
@@ -44,14 +39,14 @@ function getRangeStart(range: TimeRange): string | null {
 // ---------------------------------------------------------------------------
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('Last 30 Days');
-  const [selectedGame, setSelectedGame] = useState<Game>('Queens');
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>('Queens');
   const [customStart, setCustomStart] = useState('');
   const [customEnd,   setCustomEnd]   = useState('');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Month/year currently visible in the heatmap calendar, kept in sync via its
-  // onMonthChange callback. Drives the per-game MonthlyTally. Initialised to the
-  // current system month/year so the first render already matches the calendar.
+  // onMonthChange callback. Drives the MonthlyTally. Initialised to the current
+  // system month/year so the first render already matches the calendar.
   const now = new Date();
   const [visibleMonth, setVisibleMonth] = useState(now.getMonth());
   const [visibleYear,  setVisibleYear]  = useState(now.getFullYear());
@@ -59,97 +54,35 @@ export default function AnalyticsPage() {
   const { data, isLoading, error } = useGamesData(CSV_URL);
   const { colors } = usePlayerColors();
 
-  // ── Filter by game + time range ──────────────────────────────────────────
-  const filteredRecords = useMemo(() => {
+  // ── Metrics (thin orchestration over src/utils) ──────────────────────────
+  // Apply the temporal range filter plus the per-game filter, then delegate
+  // the metric computation to computeGameStats.
+  const stats = useMemo(() => {
     const rangeStart = getRangeStart(timeRange);
-    return data.filter((row) => {
-      if (row.Juego?.trim() !== selectedGame) return false;
-      const fecha = row.Fecha?.trim() ?? '';
+    const inRange = (fecha: string) => {
       if (timeRange === 'Custom') {
         if (customStart && fecha < customStart) return false;
         if (customEnd   && fecha > customEnd)   return false;
-      } else if (rangeStart && fecha < rangeStart) {
-        return false;
+        return true;
       }
-      return true;
+      return !rangeStart || fecha >= rangeStart;
+    };
+
+    const filtered = data.filter((row) => {
+      if (row.Juego?.trim() !== activeTab) return false;
+      return inRange(row.Fecha?.trim() ?? '');
     });
-  }, [data, selectedGame, timeRange, customStart, customEnd]);
-
-  // ── Compute all stats ────────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    if (!filteredRecords.length) return null;
-
-    // World record: entry with the lowest time
-    let wrRecord: GameRecord = filteredRecords[0];
-    for (const row of filteredRecords) {
-      if (timeToSeconds(row.Tiempo) < timeToSeconds(wrRecord.Tiempo)) wrRecord = row;
-    }
-
-    // Per-player average helpers
-    const byPlayer = (name: string) =>
-      filteredRecords.filter((r) => r.Jugador?.trim().toLowerCase() === name);
-
-    const avgSecs = (records: GameRecord[]): number => {
-      const times = records.map((r) => timeToSeconds(r.Tiempo)).filter((t) => isFinite(t));
-      return times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity;
-    };
-
-    const enriqueRecords   = byPlayer('enrique');
-    const franciscoRecords = byPlayer('francisco');
-
-    // Overall average across all records
-    const allTimes = filteredRecords.map((r) => timeToSeconds(r.Tiempo)).filter((t) => isFinite(t));
-    const avgOverall = allTimes.length ? allTimes.reduce((a, b) => a + b, 0) / allTimes.length : Infinity;
-
-    // Group by date to compare players head-to-head
-    const dateMap = new Map<string, { enrique?: GameRecord; francisco?: GameRecord }>();
-    for (const row of filteredRecords) {
-      const date   = row.Fecha?.trim() ?? '';
-      const player = row.Jugador?.trim().toLowerCase();
-      if (!dateMap.has(date)) dateMap.set(date, {});
-      const entry = dateMap.get(date)!;
-      if (player === 'enrique')        entry.enrique   = row;
-      else if (player === 'francisco') entry.francisco = row;
-    }
-
-    let enriqueWins = 0, franciscoWins = 0;
-    for (const { enrique, francisco } of dateMap.values()) {
-      const result = calculateWinner(enrique, francisco, selectedGame);
-      if (result === 'a') enriqueWins++;
-      else if (result === 'b') franciscoWins++;
-    }
-
-    // Chart data sorted chronologically
-    const chartData = [...dateMap.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, { enrique, francisco }]) => ({
-        date:      isoToChartDate(date),
-        francisco: francisco ? timeToSeconds(francisco.Tiempo) : undefined,
-        enrique:   enrique   ? timeToSeconds(enrique.Tiempo)   : undefined,
-      }));
-
-    return {
-      worldRecord: {
-        time:   secondsToTime(timeToSeconds(wrRecord.Tiempo)),
-        player: wrRecord.Jugador?.trim() ?? '—',
-      },
-      avgOverall:   secondsToTime(avgOverall),
-      avgFrancisco: secondsToTime(avgSecs(franciscoRecords)),
-      avgEnrique:   secondsToTime(avgSecs(enriqueRecords)),
-      enriqueWins,
-      franciscoWins,
-      chartData,
-    };
-  }, [filteredRecords, selectedGame]);
+    return computeGameStats(filtered, activeTab);
+  }, [data, activeTab, timeRange, customStart, customEnd]);
 
   // ── Heatmap colour map (independent of the temporal range filter) ─────────
-  // Always derived from the COMPLETE `data` (never `filteredRecords`), so the
-  // heatmap's own month navigation can roam the full history regardless of the
-  // Last 7/30/90 Days / Custom selector. Recomputed only when the data, the
-  // selected game, or the player colours change.
+  // Always derived from the COMPLETE `data` (never the range-filtered set), so
+  // the heatmap's own month navigation can roam the full history regardless of
+  // the Last 7/30/90 Days / Custom selector. Coloured by per-game head-to-head
+  // winner for the active tab.
   const heatmapColorMap = useMemo(
-    () => buildGameColorMap(data, selectedGame, colors),
-    [data, selectedGame, colors],
+    () => buildGameColorMap(data, activeTab, colors),
+    [data, activeTab, colors],
   );
 
   // Dates that have ANY record (across all games) — used to gate calendar clicks.
@@ -170,11 +103,12 @@ export default function AnalyticsPage() {
     if (datesWithData.has(iso)) setSelectedDate(iso);
   }
 
-  // Per-game day-win tally for the month currently visible in the heatmap.
-  // Derived from the COMPLETE data (independent of the range filter).
+  // Day-win tally for the month currently visible in the heatmap. Derived from
+  // the COMPLETE data (independent of the range filter): per-game head-to-head
+  // tally for the active tab.
   const gameTally = useMemo(
-    () => computeGameMonthlyTally(data, selectedGame, visibleMonth, visibleYear),
-    [data, selectedGame, visibleMonth, visibleYear],
+    () => computeGameMonthlyTally(data, activeTab, visibleMonth, visibleYear),
+    [data, activeTab, visibleMonth, visibleYear],
   );
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -208,18 +142,11 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      {/* Selectors row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <select
-          value={selectedGame}
-          onChange={(e) => setSelectedGame(e.target.value as Game)}
-          className="text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          {GAMES.map((g) => (
-            <option key={g} value={g}>{g}</option>
-          ))}
-        </select>
+      {/* Game tabs */}
+      <GameTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
+      {/* Time range selector */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Calendar size={15} className="text-slate-400 shrink-0" />
 
         <select
@@ -252,7 +179,7 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {/* ── Heatmap calendar (per-game winner colours) ── */}
+      {/* ── Heatmap calendar (per-tab winner colours) ── */}
       <div className="space-y-2">
         <MonthlyTally tally={gameTally} colors={colors} />
         <MiniCalendar
@@ -314,4 +241,3 @@ export default function AnalyticsPage() {
     </>
   );
 }
-
