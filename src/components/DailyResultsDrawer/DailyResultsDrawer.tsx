@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { X, Trophy, Zap, Music, Crown, Grid2X2, Puzzle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { GameRecord } from '../../hooks/useGamesData';
-import { calculateWinner, isFlawless } from '../../utils/timeUtils';
+import { calculateWinner } from '../../utils/timeUtils';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -45,29 +45,55 @@ interface ComputedGame {
   enriqueTime: string;
   franciscoTime: string;
   winner: Player | undefined;
-  enriqueFlawless: boolean;
-  franciscoFlawless: boolean;
+  /** True only for the Zip game, which uses the retrocesos indicator. */
+  isZip: boolean;
+  /** Backtrack count; null = unknown/unparsed (no star awarded). */
+  enriqueRetrocesos: number | null;
+  franciscoRetrocesos: number | null;
 }
 
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+/**
+ * Renders the Zip-only retrocesos indicator:
+ *   - ✨ strictly when count === 0 (verified perfect run).
+ *   - numeric "(N)" for a known positive count.
+ *   - nothing for unknown (null) counts or non-Zip games.
+ */
+function RetrocesosIndicator({ isZip, count }: { isZip: boolean; count: number | null }) {
+  if (!isZip || count == null) return null;
+  if (count === 0) {
+    return <span className="text-sm" title="Zip sin retrocesos">✨</span>;
+  }
+  return (
+    <span
+      className="text-xs font-medium text-slate-400 dark:text-slate-500"
+      title={`${count} retroceso${count !== 1 ? 's' : ''}`}
+    >
+      ({count})
+    </span>
+  );
+}
+
 function PlayerRow({
   label,
   value,
   isWinner,
-  hasFlawless,
+  isZip,
+  retrocesos,
 }: {
   label: string;
   value: string;
   isWinner: boolean;
-  hasFlawless: boolean;
+  isZip: boolean;
+  retrocesos: number | null;
 }) {
   return (
     <div className="flex items-center justify-between py-1">
       <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
       <div className="flex items-center gap-1.5">
-        {hasFlawless && <span className="text-sm">✨</span>}
+        <RetrocesosIndicator isZip={isZip} count={retrocesos} />
         <span
           className={`text-sm font-semibold ${
             isWinner ? 'text-blue-500' : 'text-slate-700 dark:text-slate-200'
@@ -92,13 +118,15 @@ function GameCard({ game }: { game: ComputedGame }) {
           label="Francisco"
           value={game.franciscoTime}
           isWinner={game.winner === 'francisco'}
-          hasFlawless={game.franciscoFlawless}
+          isZip={game.isZip}
+          retrocesos={game.franciscoRetrocesos}
         />
         <PlayerRow
           label="Enrique"
           value={game.enriqueTime}
           isWinner={game.winner === 'enrique'}
-          hasFlawless={game.enriqueFlawless}
+          isZip={game.isZip}
+          retrocesos={game.enriqueRetrocesos}
         />
       </div>
     </div>
@@ -134,9 +162,10 @@ export default function DailyResultsDrawer({
 
     return [...gameMap.entries()].map(([name, { enrique, francisco }]) => {
       // Centralized head-to-head resolution: lower time wins, victory by
-      // forfeit (missing time) and flawless (✨) tiebreaker on exact ties.
-      // calculateWinner(francisco, enrique) → 'a' = francisco, 'b' = enrique.
-      const result = calculateWinner(francisco, enrique);
+      // forfeit (missing time) and, on exact ties, the Zip-only retrocesos
+      // tiebreaker (fewer backtracks wins).
+      // calculateWinner(francisco, enrique, name) → 'a' = francisco, 'b' = enrique.
+      const result = calculateWinner(francisco, enrique, name);
       const winner: Player | undefined =
         result === 'a' ? 'francisco' : result === 'b' ? 'enrique' : undefined;
       return {
@@ -146,8 +175,9 @@ export default function DailyResultsDrawer({
         enriqueTime:      enrique?.Tiempo ?? '—',
         franciscoTime:    francisco?.Tiempo ?? '—',
         winner,
-        enriqueFlawless:   isFlawless(enrique?.['Sin Fallos']),
-        franciscoFlawless: isFlawless(francisco?.['Sin Fallos']),
+        isZip:               name.trim().toLowerCase() === 'zip',
+        enriqueRetrocesos:   enrique?.Retrocesos ?? null,
+        franciscoRetrocesos: francisco?.Retrocesos ?? null,
       };
     });
   }, [dateRecords]);

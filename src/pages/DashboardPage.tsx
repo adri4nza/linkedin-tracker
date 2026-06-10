@@ -63,8 +63,8 @@ export default function DashboardPage() {
       }
 
       let eWins = 0, fWins = 0;
-      for (const { enrique, francisco } of gameMap.values()) {
-        const result = calculateWinner(enrique, francisco);
+      for (const [juego, { enrique, francisco }] of gameMap.entries()) {
+        const result = calculateWinner(enrique, francisco, juego);
         if (result === 'a') eWins++;
         else if (result === 'b') fWins++;
       }

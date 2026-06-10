@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
+import { extractRetrocesos } from '../utils/timeUtils';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -36,6 +37,12 @@ export interface GameRecord {
   'Sin Fallos': string;
   'Pistas/Notas': string;
   'Mensaje Original': string;
+  /**
+   * Backtrack count for the 'Zip' game. NOT a CSV column — it is derived
+   * on-the-fly client-side in `useGamesData` from 'Mensaje Original'.
+   * `null` = unknown/unparsed (and never awarded the ✨ star).
+   */
+  Retrocesos?: number | null;
 }
 
 interface UseGamesDataResult {
@@ -70,7 +77,14 @@ export function useGamesData(csvUrl: string): UseGamesDataResult {
         if (results.errors.length > 0) {
           setError(results.errors.map((e) => e.message).join('; '));
         } else {
-          setData(results.data);
+          // On-the-fly enrichment: derive the Zip 'Retrocesos' count from the
+          // raw 'Mensaje Original' text. No Google Sheet column required.
+          const enriched = results.data.map((row) =>
+            row.Juego?.trim().toLowerCase() === 'zip'
+              ? { ...row, Retrocesos: extractRetrocesos(row['Mensaje Original']) }
+              : row,
+          );
+          setData(enriched);
         }
         setIsLoading(false);
       },

@@ -3,7 +3,7 @@ import { Loader2, AlertCircle, Search, ChevronUp, ChevronDown, ChevronsUpDown } 
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import type { GameRecord } from '../hooks/useGamesData';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
-import { timeToSeconds, isFlawless } from '../utils/timeUtils';
+import { timeToSeconds } from '../utils/timeUtils';
 
 const CSV_URL = getActiveCsvUrl();
 
@@ -194,8 +194,8 @@ export default function ResultsPage() {
                   Time
                   <SortIcon col="Tiempo" active={sortCol} dir={sortDir} />
                 </th>
-                <th className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide text-center">
-                  ✨
+                <th className="px-3 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide text-center" title="Retrocesos (solo Zip): ✨ = 0 retrocesos">
+                  Retro.
                 </th>
               </tr>
             </thead>
@@ -219,7 +219,21 @@ export default function ResultsPage() {
                     <td className="px-3 py-2 text-slate-400 text-xs whitespace-nowrap">{row['Edición (n.º)']?.trim()}</td>
                     <td className="px-3 py-2 font-mono font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{row.Tiempo?.trim()}</td>
                     <td className="px-3 py-2 text-center">
-                      {isFlawless(row['Sin Fallos']) && <span title="Flawless">✨</span>}
+                      {row.Juego?.trim().toLowerCase() === 'zip' &&
+                        (() => {
+                          const retro = row.Retrocesos ?? null;
+                          if (retro === 0) return <span title="Zip sin retrocesos">✨</span>;
+                          if (retro != null)
+                            return (
+                              <span
+                                className="text-xs font-medium text-slate-500 dark:text-slate-400"
+                                title={`${retro} retroceso${retro !== 1 ? 's' : ''}`}
+                              >
+                                {retro}
+                              </span>
+                            );
+                          return <span className="text-slate-300 dark:text-slate-600">—</span>;
+                        })()}
                     </td>
                   </tr>
                 ))

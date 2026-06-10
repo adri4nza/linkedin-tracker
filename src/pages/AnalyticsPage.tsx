@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
 
     let enriqueWins = 0, franciscoWins = 0;
     for (const { enrique, francisco } of dateMap.values()) {
-      const result = calculateWinner(enrique, francisco);
+      const result = calculateWinner(enrique, francisco, selectedGame);
       if (result === 'a') enriqueWins++;
       else if (result === 'b') franciscoWins++;
     }
@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
       franciscoWins,
       chartData,
     };
-  }, [filteredRecords]);
+  }, [filteredRecords, selectedGame]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoading) {
