@@ -197,24 +197,33 @@ export default function AnalyticsPage() {
         </p>
       ) : (
         <>
-          {/* World Record */}
-          <MetricCard
-            label="World Record"
-            value={stats.worldRecord.time}
-            icon={<Trophy size={14} />}
-            heldBy={stats.worldRecord.player}
-          />
+          {/* World Record — one card per player, side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <MetricCard
+              label="WR Francisco"
+              value={stats.worldRecordByPlayer.francisco ?? '—'}
+              icon={<Trophy size={14} />}
+            />
+            <MetricCard
+              label="WR Enrique"
+              value={stats.worldRecordByPlayer.enrique ?? '—'}
+              icon={<Trophy size={14} />}
+            />
+          </div>
 
-          {/* Average Time */}
-          <MetricCard
-            label="Average Time"
-            value={stats.avgOverall}
-            icon={<Clock size={14} />}
-            subItems={[
-              { name: 'Francisco', value: stats.avgFrancisco, variant: 'dark' },
-              { name: 'Enrique',   value: stats.avgEnrique,   variant: 'blue' },
-            ]}
-          />
+          {/* Average Time — one card per player, side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <MetricCard
+              label="Avg Francisco"
+              value={stats.avgFrancisco}
+              icon={<Clock size={14} />}
+            />
+            <MetricCard
+              label="Avg Enrique"
+              value={stats.avgEnrique}
+              icon={<Clock size={14} />}
+            />
+          </div>
 
           {/* Total Wins */}
           <MetricCard

@@ -30,6 +30,8 @@ import { timeToSeconds, secondsToTime, calculateWinner } from './timeUtils';
  */
 export interface GameStats {
   worldRecord: { time: string; player: string };
+  /** Per-player world record (best finite time), formatted; null if none. */
+  worldRecordByPlayer: { francisco: string | null; enrique: string | null };
   avgOverall: string;
   avgFrancisco: string;
   avgEnrique: string;
@@ -56,6 +58,16 @@ export function isoToChartDate(iso: string): string {
 function avgSecs(records: GameRecord[]): number {
   const times = records.map((r) => timeToSeconds(r.Tiempo)).filter((t) => isFinite(t));
   return times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity;
+}
+
+/** Lowest finite time (in seconds) among the given records; Infinity if none. */
+function minSecs(records: GameRecord[]): number {
+  let best = Infinity;
+  for (const r of records) {
+    const secs = timeToSeconds(r.Tiempo);
+    if (isFinite(secs) && secs < best) best = secs;
+  }
+  return best;
 }
 
 // ---------------------------------------------------------------------------
@@ -132,6 +144,10 @@ export function computeGameStats(records: GameRecord[], game: string): GameStats
     worldRecord: {
       time: secondsToTime(timeToSeconds(wrRecord.Tiempo)),
       player: wrRecord.Jugador?.trim() ?? '—',
+    },
+    worldRecordByPlayer: {
+      francisco: isFinite(minSecs(franciscoRecords)) ? secondsToTime(minSecs(franciscoRecords)) : null,
+      enrique: isFinite(minSecs(enriqueRecords)) ? secondsToTime(minSecs(enriqueRecords)) : null,
     },
     avgOverall: secondsToTime(avgOverall),
     avgFrancisco: secondsToTime(avgSecs(franciscoRecords)),
