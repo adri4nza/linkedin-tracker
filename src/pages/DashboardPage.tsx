@@ -1,11 +1,11 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Loader2, AlertCircle, Trophy } from 'lucide-react';
 import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
+import MonthlyTally from '../components/MonthlyTally/MonthlyTally';
 import DonutChart from '../components/DonutChart/DonutChart';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
-import type { GameRecord } from '../hooks/useGamesData';
-import { calculateWinner } from '../utils/timeUtils';
+import { computeDailyOutcomes, computeMonthlyTally } from '../utils/dayWins';
 import { usePlayerColors, TIE_COLOUR } from '../hooks/usePlayerColors';
 
 const CSV_URL = getActiveCsvUrl();
@@ -22,71 +22,51 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  // Month/year currently visible in the MiniCalendar, kept in sync via its
+  // onMonthChange callback. Initialised to the current system month/year so the
+  // first render's tally already matches the calendar's default month.
+  const now = new Date();
+  const [visibleMonth, setVisibleMonth] = useState(now.getMonth());
+  const [visibleYear, setVisibleYear] = useState(now.getFullYear());
+
   const { data, isLoading, error } = useGamesData(CSV_URL);
   const { colors } = usePlayerColors();
 
-  // ── Compute days won + per-day calendar colours ──────────────────────────
+  // ── Single source of truth: per-day outcomes (días ganados) ──────────────
+  // All day-win aggregation lives in utils/dayWins.ts. The page only reshapes
+  // the result for presentation (calendar colours, donut, carousel, tally).
+  const outcomes = useMemo(
+    () => computeDailyOutcomes(data, colors),
+    [data, colors],
+  );
+
+  // ── Derive calendar colours + donut data + carousel cards from outcomes ───
   const { winRateData, dateColorMap, dailyCards } = useMemo(() => {
     const dateColorMap = new Map<string, string>();
-    if (!data.length) return { winRateData: [], dateColorMap, dailyCards: [] };
-
-    // Group records by date → game
-    const dateMap = new Map<string, Map<string, { enrique?: GameRecord; francisco?: GameRecord }>>();
-    for (const row of data) {
-      const fecha  = row.Fecha?.trim() ?? '';
-      const juego  = row.Juego?.trim() ?? '';
-      if (!fecha) continue;
-      if (!dateMap.has(fecha)) dateMap.set(fecha, new Map());
-      const gameMap = dateMap.get(fecha)!;
-      if (!gameMap.has(juego)) gameMap.set(juego, {});
-      const entry  = gameMap.get(juego)!;
-      const player = row.Jugador?.trim().toLowerCase();
-      if (player === 'enrique')        entry.enrique   = row;
-      else if (player === 'francisco') entry.francisco = row;
-    }
-
-    let enriqueDays = 0, franciscoDays = 0, tieDays = 0;
-    const eBreakdown: Record<string, string[]> = {};
     const fBreakdown: Record<string, string[]> = {};
+    const eBreakdown: Record<string, string[]> = {};
     const tieBreakdown: Record<string, string[]> = {};
+    let franciscoDays = 0, enriqueDays = 0, tieDays = 0;
     const dailyCardsRaw: Array<{ fecha: string; winner: string; score: string; color: string }> = [];
 
-    for (const [fecha, gameMap] of dateMap.entries()) {
-      let eGames = 0, fGames = 0;
-      for (const { enrique, francisco } of gameMap.values()) {
-        if (enrique)   eGames++;
-        if (francisco) fGames++;
-      }
-      if (eGames !== fGames) {
-        dateColorMap.set(fecha, TIE_COLOUR);
-        continue;
-      }
+    for (const o of outcomes) {
+      // Every dated outcome (including 'excluded', painted as tie) colours the day.
+      dateColorMap.set(o.fecha, o.color);
+      if (o.outcome === 'excluded') continue; // painted tie, never counted
 
-      let eWins = 0, fWins = 0;
-      for (const [juego, { enrique, francisco }] of gameMap.entries()) {
-        const result = calculateWinner(enrique, francisco, juego);
-        if (result === 'a') eWins++;
-        else if (result === 'b') fWins++;
-      }
-      const score = `${Math.max(eWins, fWins)}-${Math.min(eWins, fWins)}`;
-      if (eWins > fWins) {
-        enriqueDays++;
-        dateColorMap.set(fecha, colors.enrique);
-        if (!eBreakdown[score]) eBreakdown[score] = [];
-        eBreakdown[score].push(fecha);
-        dailyCardsRaw.push({ fecha, winner: 'Enrique', score: `${eWins} - ${fWins}`, color: colors.enrique });
-      } else if (fWins > eWins) {
+      const scoreKey = `${Math.max(o.franciscoWins, o.enriqueWins)}-${Math.min(o.franciscoWins, o.enriqueWins)}`;
+      if (o.outcome === 'francisco') {
         franciscoDays++;
-        dateColorMap.set(fecha, colors.francisco);
-        if (!fBreakdown[score]) fBreakdown[score] = [];
-        fBreakdown[score].push(fecha);
-        dailyCardsRaw.push({ fecha, winner: 'Francisco', score: `${fWins} - ${eWins}`, color: colors.francisco });
+        (fBreakdown[scoreKey] ??= []).push(o.fecha);
+        dailyCardsRaw.push({ fecha: o.fecha, winner: 'Francisco', score: `${o.franciscoWins} - ${o.enriqueWins}`, color: colors.francisco });
+      } else if (o.outcome === 'enrique') {
+        enriqueDays++;
+        (eBreakdown[scoreKey] ??= []).push(o.fecha);
+        dailyCardsRaw.push({ fecha: o.fecha, winner: 'Enrique', score: `${o.enriqueWins} - ${o.franciscoWins}`, color: colors.enrique });
       } else {
         tieDays++;
-        dateColorMap.set(fecha, TIE_COLOUR);
-        if (!tieBreakdown[score]) tieBreakdown[score] = [];
-        tieBreakdown[score].push(fecha);
-        dailyCardsRaw.push({ fecha, winner: 'Tie', score: `${eWins} - ${fWins}`, color: TIE_COLOUR });
+        (tieBreakdown[scoreKey] ??= []).push(o.fecha);
+        dailyCardsRaw.push({ fecha: o.fecha, winner: 'Tie', score: `${o.franciscoWins} - ${o.enriqueWins}`, color: TIE_COLOUR });
       }
     }
 
@@ -99,7 +79,13 @@ export default function DashboardPage() {
     const dailyCards = dailyCardsRaw.sort((a, b) => a.fecha.localeCompare(b.fecha));
 
     return { winRateData, dateColorMap, dailyCards };
-  }, [data, colors]);
+  }, [outcomes, colors]);
+
+  // ── Monthly tally for the month currently visible in the calendar ─────────
+  const tally = useMemo(
+    () => computeMonthlyTally(outcomes, visibleMonth, visibleYear),
+    [outcomes, visibleMonth, visibleYear],
+  );
 
   // Auto-scroll carousel to the rightmost (most recent) card
   useEffect(() => {
@@ -187,11 +173,15 @@ export default function DashboardPage() {
           ))
         )}
       </div>
-      <MiniCalendar
-        datesWithData={datesWithData}
-        dateColorMap={dateColorMap}
-        onDayClick={handleDayClick}
-      />
+      <div className="space-y-2">
+        <MonthlyTally tally={tally} colors={colors} />
+        <MiniCalendar
+          datesWithData={datesWithData}
+          dateColorMap={dateColorMap}
+          onDayClick={handleDayClick}
+          onMonthChange={(m, y) => { setVisibleMonth(m); setVisibleYear(y); }}
+        />
+      </div>
       <DonutChart data={winRateData.length ? winRateData : undefined} onDateSelect={setSelectedDate} />
 
       <DailyResultsDrawer

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -37,6 +37,9 @@ interface MiniCalendarProps {
   datesWithData?: Set<string>;
   /** Map of ISO date string → hex color for the indicator dot. Overrides default blue when provided. */
   dateColorMap?: Map<string, string>;
+  /** Called on mount (with the initial month) and on every month navigation.
+   *  month is 0-based. */
+  onMonthChange?: (month: number, year: number) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -49,11 +52,20 @@ export default function MiniCalendar({
   onDayClick,
   datesWithData,
   dateColorMap,
+  onMonthChange,
 }: MiniCalendarProps) {
   const today = new Date();
   const [year, setYear] = useState(initialYear ?? today.getFullYear());
   const [month, setMonth] = useState(initialMonth ?? today.getMonth());
   const [selected, setSelected] = useState(highlightedDay ?? today.getDate());
+
+  // Notify the parent of the visible month/year on mount and whenever it changes.
+  // Runs in an effect (not during render) to avoid triggering a parent setState
+  // while this component is rendering.
+  useEffect(() => {
+    onMonthChange?.(month, year);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month, year]);
 
   const prevMonth = () => {
     if (month === 0) { setMonth(11); setYear((y) => y - 1); }
