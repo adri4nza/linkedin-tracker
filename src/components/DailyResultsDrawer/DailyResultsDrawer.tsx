@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import type { GameRecord } from '../../hooks/useGamesData';
 import { calculateWinner } from '../../utils/timeUtils';
 import { usePlayerColors } from '../../hooks/usePlayerColors';
+import { getGameLogo } from '../../config/gameLogos';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -111,10 +112,21 @@ function PlayerRow({
 }
 
 function GameCard({ game, colors }: { game: ComputedGame; colors: { francisco: string; enrique: string } }) {
+  const logo = getGameLogo(game.name);
   return (
     <div className="bg-white/60 dark:bg-slate-800/40 rounded-2xl px-4 py-3 shadow-sm border border-slate-200/60 dark:border-slate-700/50 transition-all duration-300 hover:border-slate-300/70 dark:hover:border-slate-600/60">
-      <div className="flex items-center gap-2 mb-2 text-slate-600 dark:text-slate-400">
-        {game.icon}
+      {/* Game header: logo + icon fallback + name */}
+      <div className="flex items-center gap-2 mb-2">
+        {logo ? (
+          <img
+            src={logo}
+            alt=""
+            aria-hidden="true"
+            className="w-6 h-6 rounded object-contain shrink-0"
+          />
+        ) : (
+          <span className="text-slate-400 shrink-0">{game.icon}</span>
+        )}
         <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{game.name}</span>
       </div>
       <div className="divide-y divide-slate-100/60 dark:divide-slate-700/50">

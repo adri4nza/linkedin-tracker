@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { getGameLogo } from '../../config/gameLogos';
 
 /** The five selectable analytics views, one per minigame. */
 export type AnalyticsTab =
@@ -124,7 +125,20 @@ export default function GameTabs<T extends string>({
                   'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/50',
             ].join(' ')}
           >
-            {tab}
+            {(() => {
+              const logo = getGameLogo(tab);
+              return logo ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <img
+                    src={logo}
+                    alt=""
+                    aria-hidden="true"
+                    className="w-5 h-5 rounded object-contain shrink-0"
+                  />
+                  {tab}
+                </span>
+              ) : tab;
+            })()}
           </button>
         );
       })}
