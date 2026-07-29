@@ -130,9 +130,9 @@ export default function DashboardPage() {
       {/* Daily Results Carousel – newest first */}
       <div ref={carouselRef} className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 hide-scrollbar">
         {dailyCards.length === 0 ? (
-          <div className="snap-center min-w-full bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 shrink-0 transition-colors duration-200">
+          <div className="snap-center min-w-full bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 shrink-0 transition-colors duration-300">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-slate-50 dark:bg-slate-700">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-slate-100/60 dark:bg-slate-800/60">
                 <Trophy size={26} className="text-slate-300" />
               </div>
               <p className="text-sm font-medium text-slate-400">No games played yet</p>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
           dailyCards.map((card) => (
             <div
               key={card.fecha}
-              className="snap-center min-w-full bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 shrink-0 transition-colors duration-200"
+              className="snap-center min-w-full bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 shrink-0 transition-colors duration-300"
             >
               <div className="flex items-center gap-4">
                 <div
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                     </p>
                   ) : (
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                      <span style={{ color: card.color }}>{card.winner}</span>{' '}
+                      <span className="winner-glow" style={{ color: card.color, ['--glow' as string]: card.color }}>{card.winner}</span>{' '}
                       won{' '}
                       <span style={{ color: card.color }}>{card.score}</span>
                     </p>

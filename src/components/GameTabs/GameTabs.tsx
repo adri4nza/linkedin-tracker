@@ -96,7 +96,7 @@ export default function GameTabs<T extends string>({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="flex items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl bg-white/50 dark:bg-slate-900/40 backdrop-blur-md p-1 border border-slate-200/60 dark:border-slate-700/50 shadow-sm transition-colors duration-300 hide-scrollbar"
+      className="flex items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm p-1 border border-slate-200/60 dark:border-slate-700/50 shadow-sm transition-colors duration-300 hide-scrollbar"
     >
       {tabs.map((tab, index) => {
         const isActive = tab === active;
@@ -119,7 +119,7 @@ export default function GameTabs<T extends string>({
               'focus-visible:ring-offset-slate-100 dark:focus-visible:ring-offset-slate-900',
               isActive
                 ? // Active: glassy fill + glow + bottom underline + stronger text colour.
-                  'bg-white/90 dark:bg-slate-800/70 text-blue-600 dark:text-blue-400 shadow-[0_0_14px_-2px_rgba(59,130,246,0.5)] ring-1 ring-blue-500/20 after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-blue-500 dark:after:bg-blue-400'
+                  'bg-white dark:bg-slate-800/80 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-blue-500/15 after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-blue-500 dark:after:bg-blue-400'
                 : // Inactive: muted, with hover affordance.
                   'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/50',
             ].join(' ')}

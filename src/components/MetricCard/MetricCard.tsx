@@ -34,7 +34,7 @@ export default function MetricCard({
   trend,
 }: MetricCardProps) {
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
+    <div className="bg-white/60 dark:bg-slate-900/40 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 transition-all duration-300 hover:border-slate-300/70 dark:hover:border-slate-600/60 hover:shadow-md">
       {/* Label row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">

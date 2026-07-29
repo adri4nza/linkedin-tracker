@@ -34,15 +34,16 @@ body {
  * Winner glow helpers
  * Applied to a player's accent element when they win. The colour is injected
  * via the inline --glow custom property so it respects the configurable
- * player colours. Kept subtle for the minimalist aesthetic.
+ * player colours. Deliberately VERY subtle: the text stays 100% crisp and
+ * legible (text-shadow does not blur the glyph), with only a faint halo.
  * ------------------------------------------------------------------------- */
 .winner-glow {
-  filter: drop-shadow(0 0 6px var(--glow, rgba(59, 130, 246, 0.55)));
+  text-shadow: 0 0 5px color-mix(in srgb, var(--glow, #3b82f6) 30%, transparent);
 }
-.winner-glow-strong {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--glow, #3b82f6) 40%, transparent),
-    0 0 18px -2px var(--glow, rgba(59, 130, 246, 0.6));
+
+/* For non-text accents (e.g. the MonthlyTally colour dot): a faint ring/halo. */
+.winner-glow-dot {
+  box-shadow: 0 0 4px color-mix(in srgb, var(--glow, #3b82f6) 45%, transparent);
 }
 
 /* Hide scrollbar while keeping scroll functionality */

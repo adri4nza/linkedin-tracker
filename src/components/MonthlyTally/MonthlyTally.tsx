@@ -35,13 +35,13 @@ export default function MonthlyTally({
     count > 0 && count === leadCount && label !== 'Empates' && tally.francisco !== tally.enrique;
 
   return (
-    <div className="flex items-center justify-center gap-4 sm:gap-6 rounded-2xl bg-white/50 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/50 shadow-sm px-4 py-3 transition-colors duration-300">
+    <div className="flex items-center justify-center gap-4 sm:gap-6 rounded-2xl bg-white/60 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/50 shadow-sm px-4 py-3 transition-colors duration-300">
       {items.map(({ label, count, color }) => {
         const leader = isLeader(label, count);
         return (
           <div key={label} className="flex items-center gap-2">
             <span
-              className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${leader ? 'winner-glow' : ''}`}
+              className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${leader ? 'winner-glow-dot' : ''}`}
               style={{ backgroundColor: color, ['--glow' as string]: color }}
               aria-hidden="true"
             />

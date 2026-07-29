@@ -161,14 +161,14 @@ export default function AnalyticsPage() {
             type="date"
             value={customStart}
             onChange={(e) => setCustomStart(e.target.value)}
-            className="text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="text-sm text-slate-700 dark:text-slate-200 bg-white/60 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300"
           />
           <span className="text-sm text-slate-400">–</span>
           <input
             type="date"
             value={customEnd}
             onChange={(e) => setCustomEnd(e.target.value)}
-            className="text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="text-sm text-slate-700 dark:text-slate-200 bg-white/60 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300"
           />
         </div>
       )}
