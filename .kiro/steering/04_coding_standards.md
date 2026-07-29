@@ -12,7 +12,7 @@ actual; respétalas para no romper la arquitectura existente.
 - Cualquier cálculo de ganadores, conteos, promedios, récords, pivotes o mapas
   de color **debe implementarse como función pura** en `src/utils/`:
   `timeUtils.ts`, `dayWins.ts`, `gameHeatmap.ts`, `analyticsStats.ts`,
-  `pivot.ts`.
+  `pivot.ts`, `normalizeEditionDates.ts`.
 - **Puras = sin efectos secundarios, deterministas**: mismas entradas → mismas
   salidas. No leen `localStorage`, no tocan el DOM, no llaman a `Date.now()`
   internamente para la lógica de negocio (el rango temporal se calcula en la
@@ -21,6 +21,13 @@ actual; respétalas para no romper la arquitectura existente.
   el `data`, invocan las funciones de `utils` y reforman el resultado para
   presentación. `DashboardPage` y `AnalyticsPage` son el patrón a seguir (un
   `useMemo` delgado que llama a `computeDailyOutcomes` / `computeGameStats`).
+- **El pre-procesamiento de datos pertenece a `useGamesData`**, no a las páginas
+  ni a los utils de agregación. La función `normalizeEditionDates` es el patrón
+  a seguir: transforma el array de entrada antes de exponerlo, de modo que todos
+  los consumidores downstream reciben datos ya correctos sin saberlo. Si en el
+  futuro se necesita otro paso de normalización (ej. deduplicación, corrección de
+  nombres), debe añadirse en ese mismo pipeline (`useGamesData`) como un paso
+  numerado adicional.
 - **`calculateWinner` es la única autoridad** para decidir un ganador
   head-to-head. No dupliques su lógica (comparación de tiempos, forfeit,
   desempate de Zip) en ningún otro lugar; llámala.

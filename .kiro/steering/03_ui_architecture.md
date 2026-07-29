@@ -25,9 +25,11 @@ Las tres páginas de datos comparten el mismo esqueleto: consumen
 
 ## DashboardPage (`/`) — días ganados
 
-Fuente única de verdad: `computeDailyOutcomes(data, colors)` (de `dayWins.ts`).
-La página **solo reforma** el resultado para presentación; no reimplementa
-agregación. De un solo `useMemo` sobre `outcomes` deriva:
+Fuente única de verdad: `computeDailyOutcomes(activeData, colors)` (de
+`dayWins.ts`). `activeData` es `data` filtrado sin Mini Sudoku cuando el toggle
+`excludeMiniSudoku` está activo (ver `02_business_logic.md §8`); de lo contrario
+es igual a `data`. La página **solo reforma** el resultado para presentación.
+De un solo `useMemo` sobre `outcomes` deriva:
 
 - **`dateColorMap`** — color por fecha para el calendario (incluye días
   `'excluded'`, pintados como empate).
@@ -35,9 +37,21 @@ agregación. De un solo `useMemo` sobre `outcomes` deriva:
   Empates), con `breakdown` por marcador para el desglose.
 - **`dailyCards`** — tarjetas del carrusel de resultados diarios, ordenadas
   cronológicamente; un `useEffect` auto-scrollea al card más reciente (derecha).
+  Cada tarjeta es **clickeable** (abre el `DailyResultsDrawer`) y muestra los
+  logos y dots de ganador por minijuego del día via `GameDotRow`.
 
-Componentes: carrusel de tarjetas (scroll horizontal con snap) · `MonthlyTally`
-+ `MiniCalendar` · `DonutChart` · `DailyResultsDrawer`.
+Gestiona **dos drawers en cascada** con dos estados independientes:
+- `scoreSelection` — abre `ScoreBreakdownDrawer` al clicar una pill de marcador
+  en el `DonutChart`.
+- `selectedDate` — abre `DailyResultsDrawer`. Cuando viene del
+  `ScoreBreakdownDrawer`, el primer drawer permanece montado detrás y el drawer
+  diario muestra un botón `← Volver`.
+
+Toggle "Sin Mini Sudoku": chip ámbar en la parte superior de la página. Activa
+el modo hipotético (ver `02_business_logic.md §8`).
+
+Componentes: toggle · carrusel de tarjetas · `MonthlyTally` + `MiniCalendar` ·
+`DonutChart` · `ScoreBreakdownDrawer` · `DailyResultsDrawer`.
 
 ## AnalyticsPage (`/analytics`) — métricas por minijuego con Tabs
 
@@ -69,9 +83,16 @@ jugador, Total Wins con sub-items), `TrendChart` y `DailyResultsDrawer`.
 Pipeline de 4 etapas, cada una en su `useMemo`:
 
 1. **Pivot** — `pivotRecords(data)` → una fila por `Fecha|Juego|Edición` con
-   ambos jugadores enfrentados.
-2. **Filter** — por juego (`select`) y por búsqueda de texto (juego / fecha /
-   edición).
+   ambos jugadores enfrentados. Gracias a `normalizeEditionDates`, los dos
+   registros de una edición siempre comparten la misma `Fecha` en este punto.
+2. **Filter** — tres filtros combinables:
+   - Por juego (`select`: All / Zip / Tango / Queens / Mini Sudoku / Patches).
+   - Por búsqueda de texto (juego / fecha / edición).
+   - **"Solo incompletos"** (`incompleteOnly: boolean`): muestra únicamente las
+     filas donde `francisco === undefined || enrique === undefined`, es decir,
+     ediciones con el resultado de solo un jugador. Útil para auditar casos
+     especiales. Las filas incompletas tienen un fondo ámbar sutil
+     (`bg-amber-500/5`) incluso cuando el filtro está desactivado.
 3. **Sort** — `sortPivotRows` por columna `Fecha` / `JuegoEdicion` / `Tiempo`;
    encabezados clicables alternan dirección. Filas sin tiempo van al final.
 4. **Paginate** — páginas de `PAGE_SIZE = 15`.
@@ -107,15 +128,41 @@ proviene de `dateColorMap` (fecha ISO → hex). Props clave:
 Panel lateral (drawer) que se abre al seleccionar una fecha en cualquier página.
 Agrupa los registros del día por juego, resuelve cada uno con
 `calculateWinner(francisco, enrique, name)` (Francisco-first) y muestra un
-`GameCard` por minijuego con iconos por juego, indicador de retrocesos de Zip y
-un banner con el ganador del día.
+`GameCard` por minijuego con logo oficial, indicador de retrocesos de Zip y
+un banner con el ganador del día. Acepta el prop opcional `onBack?: () => void`:
+cuando está presente muestra un botón `←` en el header (viene de
+`ScoreBreakdownDrawer`); el ✕ siempre cierra todo. El backdrop click también
+cierra todo.
 
 ### `DonutChart` y `TrendChart`
 
 Basados en **Recharts**. `DonutChart` muestra la proporción de días ganados
-(Dashboard) y permite seleccionar fechas del desglose. `TrendChart` grafica la
-evolución de tiempos por jugador (Analytics) usando `chartData` de
-`computeGameStats`.
+(Dashboard). Al clicar un segmento se despliegan pills de marcador (ej. `5-0 ×3`);
+al clicar una pill dispara `onScoreSelect(player, playerColor, score, sortedDates)`
+con las fechas ya ordenadas de más reciente a más antigua. Esto abre el
+`ScoreBreakdownDrawer` — ya no hay fechas inline en el `DonutChart`.
+`TrendChart` grafica la evolución de tiempos por jugador (Analytics) usando
+`chartData` de `computeGameStats`.
+
+### `ScoreBreakdownDrawer`
+
+`src/components/ScoreBreakdownDrawer/`. Panel de vidrio (`backdrop-blur-2xl`)
+que recibe `player`, `playerColor`, `score` y `dates` (ordenadas). Por cada
+fecha renderiza un `DateCard` que muestra la fecha y una fila de logos de
+minijuego con dots de color indicando el ganador de cada uno (via `GameDotRow`).
+Al clicar una tarjeta abre el `DailyResultsDrawer` **sin cerrar** el
+`ScoreBreakdownDrawer`, que queda montado detrás.
+
+### `GameDotRow`
+
+`src/components/GameDotRow/`. Componente de presentación pura compartido por
+`ScoreBreakdownDrawer` y el carrusel del `DashboardPage`. Recibe `dateRecords`
+(ya filtrados a una fecha) y renderiza los 5 logos de minijuego en orden
+canónico (`GAME_ORDER = ['Zip','Tango','Queens','Mini Sudoku','Patches']`) con
+un dot de color debajo de cada uno indicando el ganador (Francisco-first
+convention). **Solo muestra los juegos que tienen al menos un registro para esa
+fecha** — los que no existían ese día no aparecen. Soporta tamaño `'sm'` (w-6
+h-6, carrusel) y `'md'` (w-7 h-7, ScoreBreakdownDrawer).
 
 ## Colores
 

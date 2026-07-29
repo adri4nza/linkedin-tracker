@@ -65,17 +65,39 @@ La app **no tiene servidor ni base de datos**. Los datos viven en una hoja de
    **Este campo NO existe en el Google Sheet**; se calcula en cliente para
    evitar migrar la hoja (ver `02_business_logic.md`).
 
-4. **Estado expuesto** — el hook devuelve `{ data, isLoading, error }`, que cada
-   página consume directamente.
+4. **Normalización de fechas por edición** — `normalizeEditionDates(enriched)`
+   (`src/utils/normalizeEditionDates.ts`) unifica la `Fecha` de todos los
+   registros que pertenecen a la misma edición de un juego, asignando a todos
+   la **fecha mínima válida** del grupo. Esto corrige el caso en que un jugador
+   completa el minijuego después de medianoche y su registro queda en el día
+   siguiente (distinta fecha que la del otro jugador), lo que de otro modo
+   causaría que el enfrentamiento no se computara correctamente en ningún utils
+   de aggregación downstream.
+
+5. **Estado expuesto** — el hook devuelve `{ data, isLoading, error }`, que cada
+   página consume directamente. **`data` ya viene enriquecido y normalizado**;
+   ningún componente ni utils debe re-normalizar fechas.
+
+### Pipeline completo de ingesta
+
+```
+CSV raw (PapaParse)
+  ↓ Step 1 — enrich:    Retrocesos derivado de Mensaje Original (solo Zip)
+  ↓ Step 2 — normalize: Fecha unificada por Juego+Edición (fecha mínima del grupo)
+  ↓ setData(normalized)
+```
 
 ### Estructura de `GameRecord`
 
 Columnas del CSV (nombres exactos, incluidas tildes y espacios):
 `Fecha`, `Jugador`, `Juego`, `Edición (n.º)`, `Tiempo`, `Top Ranking (%)`,
 `Sin Fallos`, `Pistas/Notas`, `Mensaje Original`.
-Campo derivado en cliente: `Retrocesos?: number | null`.
+Campos derivados en cliente: `Retrocesos?: number | null`.
 
-- `Fecha`: ISO `YYYY-MM-DD`.
+- `Fecha`: ISO `YYYY-MM-DD`. **Después de la normalización, todos los registros
+  de la misma `Juego+Edición` comparten la misma fecha (la más antigua del
+  grupo).** No asumas que la `Fecha` del CSV original es la fecha correcta del
+  enfrentamiento.
 - `Tiempo`: string `M:SS` o `MM:SS`. Vacío / inválido ⇒ se trata como `Infinity`
   (ausencia / abandono).
 
