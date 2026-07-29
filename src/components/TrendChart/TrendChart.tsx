@@ -39,7 +39,7 @@ interface ChartTooltipProps {
 function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2.5 shadow-lg text-xs">
+    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/50 rounded-xl px-3 py-2.5 shadow-lg text-xs">
       <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{label}</p>
       {payload.map((p: TooltipPayloadEntry) => (
         <div key={p.name} className="flex items-center gap-2 mb-0.5">
@@ -81,7 +81,7 @@ export default function TrendChart({ data, colors }: TrendChartProps) {
   }, [data]);
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
+    <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 transition-colors duration-300">
       <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Completion Time Trends</h3>
       <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">Lower is better · times in M:SS</p>
 

@@ -91,7 +91,7 @@ export default function MiniCalendar({
     year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
+    <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 transition-colors duration-300">
       {/* Month / Year header */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
@@ -100,14 +100,14 @@ export default function MiniCalendar({
         <div className="flex items-center gap-0.5">
           <button
             onClick={prevMonth}
-            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800/60 active:scale-95 transition-all duration-300"
             aria-label="Previous month"
           >
             <ChevronLeft size={16} className="text-slate-500" />
           </button>
           <button
             onClick={nextMonth}
-            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800/60 active:scale-95 transition-all duration-300"
             aria-label="Next month"
           >
             <ChevronRight size={16} className="text-slate-500" />
@@ -144,19 +144,22 @@ export default function MiniCalendar({
             <button
               key={d}
               onClick={() => { setSelected(d); onDayClick?.(d, month, year); }}
-              className={`relative flex flex-col items-center justify-center h-8 w-8 mx-auto rounded-full text-xs font-medium transition-colors
+              className={`relative flex flex-col items-center justify-center h-8 w-8 mx-auto rounded-full text-xs font-medium transition-all duration-300 active:scale-90
                 ${isSelected
-                  ? 'bg-blue-500 text-white font-bold'
+                  ? 'bg-blue-500 text-white font-bold shadow-sm'
                   : todayMark
-                  ? 'border border-blue-300 text-blue-600'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  ? 'border border-blue-300 text-blue-600 hover:bg-blue-500/10'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
                 }`}
             >
               {d}
               {hasData && (
                 <span
                   className="absolute bottom-0.5 w-1 h-1 rounded-full"
-                  style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.7)' : dotColor }}
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(255,255,255,0.7)' : dotColor,
+                    boxShadow: isSelected ? 'none' : `0 0 3px ${dotColor}80`,
+                  }}
                 />
               )}
             </button>

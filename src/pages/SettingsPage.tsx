@@ -64,7 +64,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Section A: Data Source ── */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 space-y-4">
+      <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-3xl p-5 shadow-sm border border-slate-200/60 dark:border-slate-700/50 space-y-4">
         <div className="flex items-center gap-2">
           <Database size={16} className="text-blue-500 shrink-0" />
           <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Data Source</h2>
@@ -90,7 +90,7 @@ export default function SettingsPage() {
             value={urlInput}
             onChange={(e) => { setUrlInput(e.target.value); setSaved(false); }}
             spellCheck={false}
-            className="w-full text-xs font-mono text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 break-all"
+            className="w-full text-xs font-mono text-slate-700 dark:text-slate-200 bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 break-all transition-all duration-300"
           />
         </div>
 
@@ -99,7 +99,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={saved}
-            className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 transition-all duration-300 shadow-sm hover:shadow-[0_0_14px_-2px_rgba(59,130,246,0.6)]"
           >
             <Save size={13} />
             {saved ? 'Saved — reloading…' : 'Save URL'}
@@ -107,7 +107,7 @@ export default function SettingsPage() {
 
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-xl border border-slate-200/60 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 active:scale-95 transition-all duration-300"
           >
             <RotateCcw size={13} />
             Reset to default
@@ -116,7 +116,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Section B: Cache Management ── */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 space-y-4">
+      <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-3xl p-5 shadow-sm border border-slate-200/60 dark:border-slate-700/50 space-y-4">
         <div className="flex items-center gap-2">
           <RefreshCw size={16} className="text-blue-500 shrink-0" />
           <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Cache Management</h2>
@@ -129,7 +129,7 @@ export default function SettingsPage() {
 
         <button
           onClick={handleForceRefresh}
-          className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-700 transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-white active:scale-95 transition-all duration-300 shadow-sm"
         >
           <RefreshCw size={13} />
           Force Refresh Data
@@ -137,7 +137,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Section C: Theme & Colors ── */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 space-y-4">
+      <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-3xl p-5 shadow-sm border border-slate-200/60 dark:border-slate-700/50 space-y-4">
         <div className="flex items-center gap-2">
           <Palette size={16} className="text-blue-500 shrink-0" />
           <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Theme &amp; Colors</h2>
@@ -211,7 +211,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSaveColors}
           disabled={colorsSaved}
-          className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 transition-all duration-300 shadow-sm hover:shadow-[0_0_14px_-2px_rgba(59,130,246,0.6)]"
         >
           <Save size={13} />
           {colorsSaved ? 'Saved — reloading…' : 'Save Colors'}

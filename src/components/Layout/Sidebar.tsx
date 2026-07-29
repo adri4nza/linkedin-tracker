@@ -31,22 +31,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         aria-hidden="true"
       />
 
-      {/* Sidebar panel */}
+      {/* Sidebar glass panel */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-800 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-64 bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-700/50 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Navigation menu"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60 dark:border-slate-700/50">
           <div className="flex items-center gap-2">
-            <Trophy size={18} className="text-blue-600" />
-            <span className="font-bold text-slate-800 dark:text-slate-100 text-base">LinkedIn Tracker</span>
+            <Trophy size={18} className="text-blue-500" />
+            <span className="font-bold text-slate-800 dark:text-slate-100 text-base tracking-tight">LinkedIn Tracker</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800/60 active:scale-95 transition-all duration-300"
             aria-label="Close menu"
           >
             <X size={18} className="text-slate-500 dark:text-slate-400" />
@@ -54,16 +54,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="px-3 py-4 space-y-0.5">
+        <nav className="px-3 py-4 space-y-1">
           {navItems.map(({ icon: Icon, label, path }) => (
               <Link
                 key={label}
                 to={path}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 active:scale-95 ${
                   isActive(path)
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? 'bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/15'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 <Icon size={18} />
@@ -73,7 +73,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 py-4 border-t border-slate-100 dark:border-slate-700">
+        <div className="absolute bottom-0 left-0 right-0 px-5 py-4 border-t border-slate-200/60 dark:border-slate-700/50">
           <p className="text-xs text-slate-400 text-center">LinkedIn Games Tracker v1.0</p>
         </div>
       </aside>

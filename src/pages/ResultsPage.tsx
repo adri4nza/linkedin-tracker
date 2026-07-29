@@ -48,13 +48,28 @@ function RetroIndicator({ retro }: { retro: number | null }) {
 }
 
 /** A single player cell: time plus the Zip retrocesos indicator, or — if absent. */
-function PlayerCell({ record, isZip, highlight }: { record?: GameRecord; isZip: boolean; highlight: boolean }) {
+function PlayerCell({
+  record,
+  isZip,
+  highlight,
+  glowColor,
+}: {
+  record?: GameRecord;
+  isZip: boolean;
+  highlight: boolean;
+  glowColor?: string;
+}) {
   if (!record) {
     return <span className="text-slate-300 dark:text-slate-600">—</span>;
   }
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className={`font-mono font-semibold ${highlight ? 'text-blue-500' : 'text-slate-800 dark:text-slate-200'}`}>
+      <span
+        className={`font-mono font-semibold transition-all duration-300 ${
+          highlight ? 'winner-glow' : 'text-slate-800 dark:text-slate-200'
+        }`}
+        style={highlight ? { color: glowColor, ['--glow' as string]: glowColor } : undefined}
+      >
         {record.Tiempo?.trim() || '—'}
       </span>
       {isZip && <RetroIndicator retro={record.Retrocesos ?? null} />}
@@ -65,13 +80,34 @@ function PlayerCell({ record, isZip, highlight }: { record?: GameRecord; isZip: 
 /** Winner column cell, colored with the project's player colors. */
 function WinnerCell({ winner, colors }: { winner: WinnerLabel; colors: PlayerColors }) {
   if (winner === 'francisco') {
-    return <span className="font-semibold" style={{ color: colors.francisco }}>Francisco</span>;
+    return (
+      <span
+        className="inline-flex items-center font-semibold text-xs px-2.5 py-1 rounded-full"
+        style={{ color: colors.francisco, backgroundColor: colors.francisco + '1a' }}
+      >
+        Francisco
+      </span>
+    );
   }
   if (winner === 'enrique') {
-    return <span className="font-semibold" style={{ color: colors.enrique }}>Enrique</span>;
+    return (
+      <span
+        className="inline-flex items-center font-semibold text-xs px-2.5 py-1 rounded-full"
+        style={{ color: colors.enrique, backgroundColor: colors.enrique + '1a' }}
+      >
+        Enrique
+      </span>
+    );
   }
   if (winner === 'tie') {
-    return <span className="font-semibold" style={{ color: TIE_COLOUR }}>Empate</span>;
+    return (
+      <span
+        className="inline-flex items-center font-semibold text-xs px-2.5 py-1 rounded-full"
+        style={{ color: TIE_COLOUR, backgroundColor: TIE_COLOUR + '1a' }}
+      >
+        Empate
+      </span>
+    );
   }
   return <span className="text-slate-300 dark:text-slate-600">—</span>;
 }
@@ -186,7 +222,7 @@ export default function ResultsPage() {
             placeholder="Search game or date…"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full pl-8 pr-3 py-2 text-sm bg-white/60 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl shadow-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300"
           />
         </div>
 
@@ -194,7 +230,7 @@ export default function ResultsPage() {
         <select
           value={gameFilter}
           onChange={(e) => handleGameFilter(e.target.value as GameFilter)}
-          className="text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="text-sm font-medium text-slate-700 dark:text-slate-200 bg-white/60 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/50 rounded-xl px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300"
         >
           {GAMES.map((g) => (
             <option key={g} value={g}>{g === 'All' ? 'All Games' : g}</option>
@@ -203,11 +239,11 @@ export default function ResultsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors duration-200">
+      <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700/50 overflow-hidden transition-colors duration-300">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 text-left">
+              <tr className="border-b border-slate-200/60 dark:border-slate-700/50 bg-slate-50/60 dark:bg-slate-800/40 text-left">
                 {(
                   [
                     { key: 'Fecha',        label: 'Date' },
@@ -252,7 +288,7 @@ export default function ResultsPage() {
                   return (
                     <tr
                       key={row.key}
-                      className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                      className="cursor-pointer hover:bg-slate-800/5 dark:hover:bg-slate-700/40 active:scale-[0.99] transition-all duration-300"
                       onClick={() => setSelectedDate(row.fecha || null)}
                     >
                       <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.fecha}</td>
@@ -261,10 +297,10 @@ export default function ResultsPage() {
                         {row.edicion && <span className="text-slate-400 text-xs ml-1">#{row.edicion}</span>}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <PlayerCell record={row.francisco} isZip={isZip} highlight={row.winner === 'francisco'} />
+                        <PlayerCell record={row.francisco} isZip={isZip} highlight={row.winner === 'francisco'} glowColor={colors.francisco} />
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <PlayerCell record={row.enrique} isZip={isZip} highlight={row.winner === 'enrique'} />
+                        <PlayerCell record={row.enrique} isZip={isZip} highlight={row.winner === 'enrique'} glowColor={colors.enrique} />
                       </td>
                       <td className="px-3 py-2 text-center whitespace-nowrap">
                         <WinnerCell winner={row.winner} colors={colors} />
@@ -278,11 +314,11 @@ export default function ResultsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-700">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200/60 dark:border-slate-700/50">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={safePage <= 1}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 transition-all duration-300"
           >
             ← Previous
           </button>
@@ -293,7 +329,7 @@ export default function ResultsPage() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={safePage >= totalPages}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 transition-all duration-300"
           >
             Next →
           </button>

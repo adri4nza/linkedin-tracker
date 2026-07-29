@@ -84,7 +84,7 @@ export default function DonutChart({ data = DEFAULT_DATA, onDateSelect }: DonutC
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-200">
+    <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 transition-colors duration-300">
       <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">
         Days Won
       </p>
@@ -131,7 +131,7 @@ export default function DonutChart({ data = DEFAULT_DATA, onDateSelect }: DonutC
 
       {/* Selected segment detail */}
       {selectedSegment && (
-      <div className="mb-3 flex flex-col items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+      <div className="mb-3 flex flex-col items-center gap-2 px-4 py-2 rounded-xl bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 dark:text-slate-400">Seleccionado:</span>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{selectedSegment.name}</span>
@@ -160,7 +160,7 @@ export default function DonutChart({ data = DEFAULT_DATA, onDateSelect }: DonutC
                       <button
                         key={score}
                         onClick={() => setSelectedScore(score)}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200 hover:bg-slate-300/60 dark:hover:bg-slate-600/60 active:scale-95 transition-all duration-300 cursor-pointer"
                       >
                         <span className="font-bold">{score}</span>
                         <span className="text-slate-400 dark:text-slate-500">×{dates.length}</span>
@@ -180,7 +180,7 @@ export default function DonutChart({ data = DEFAULT_DATA, onDateSelect }: DonutC
                       <button
                         key={fecha}
                         onClick={() => onDateSelect?.(fecha)}
-                        className="px-2 py-0.5 rounded-md text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-medium"
+                        className="px-2 py-0.5 rounded-lg text-xs bg-blue-500/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20 dark:hover:bg-blue-500/25 active:scale-95 transition-all duration-300 font-medium"
                       >
                         {formatDateShort(fecha)}
                       </button>
@@ -201,7 +201,7 @@ export default function DonutChart({ data = DEFAULT_DATA, onDateSelect }: DonutC
           return (
             <div
               key={entry.name}
-              className="flex items-center justify-between cursor-pointer rounded-lg px-1 py-0.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              className="flex items-center justify-between cursor-pointer rounded-lg px-2 py-1 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors duration-300"
               onClick={() => handleCellClick(entry)}
             >
               <div className="flex items-center gap-2">

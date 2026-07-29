@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { getGameLogo } from '../../config/gameLogos';
 
 /** The five selectable analytics views, one per minigame. */
 export type AnalyticsTab =
@@ -96,7 +97,7 @@ export default function GameTabs<T extends string>({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="flex items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 transition-colors duration-200 hide-scrollbar"
+      className="flex items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm p-1 border border-slate-200/60 dark:border-slate-700/50 shadow-sm transition-colors duration-300 hide-scrollbar"
     >
       {tabs.map((tab, index) => {
         const isActive = tab === active;
@@ -114,17 +115,30 @@ export default function GameTabs<T extends string>({
             onKeyDown={(event) => handleKeyDown(event, index)}
             className={[
               'relative shrink-0 rounded-xl px-3.5 py-1.5 text-sm font-semibold',
-              'transition-colors duration-150 outline-none',
+              'transition-all duration-300 outline-none active:scale-95',
               'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-              'focus-visible:ring-offset-slate-100 dark:focus-visible:ring-offset-slate-800',
+              'focus-visible:ring-offset-slate-100 dark:focus-visible:ring-offset-slate-900',
               isActive
-                ? // Active: two simultaneous visual cues — background fill + bottom underline + stronger text colour.
-                  'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-blue-600 dark:after:bg-blue-400'
+                ? // Active: glassy fill + glow + bottom underline + stronger text colour.
+                  'bg-white dark:bg-slate-800/80 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-blue-500/15 after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-blue-500 dark:after:bg-blue-400'
                 : // Inactive: muted, with hover affordance.
-                  'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60',
+                  'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/50',
             ].join(' ')}
           >
-            {tab}
+            {(() => {
+              const logo = getGameLogo(tab);
+              return logo ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <img
+                    src={logo}
+                    alt=""
+                    aria-hidden="true"
+                    className="w-5 h-5 rounded object-contain shrink-0"
+                  />
+                  {tab}
+                </span>
+              ) : tab;
+            })()}
           </button>
         );
       })}
