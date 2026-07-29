@@ -28,6 +28,7 @@ export default function DashboardPage() {
     score: string;
     dates: string[];
   } | null>(null);
+  const [excludeMiniSudoku, setExcludeMiniSudoku] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   // Month/year currently visible in the MiniCalendar, kept in sync via its
@@ -40,12 +41,19 @@ export default function DashboardPage() {
   const { data, isLoading, error } = useGamesData(CSV_URL);
   const { colors } = usePlayerColors();
 
+  // When the toggle is active, strip Mini Sudoku records before computing
+  // daily outcomes. Same data pipeline, different input — no logic changes.
+  const activeData = useMemo(
+    () => excludeMiniSudoku
+      ? data.filter((r) => r.Juego?.trim() !== 'Mini Sudoku')
+      : data,
+    [data, excludeMiniSudoku],
+  );
+
   // ── Single source of truth: per-day outcomes (días ganados) ──────────────
-  // All day-win aggregation lives in utils/dayWins.ts. The page only reshapes
-  // the result for presentation (calendar colours, donut, carousel, tally).
   const outcomes = useMemo(
-    () => computeDailyOutcomes(data, colors),
-    [data, colors],
+    () => computeDailyOutcomes(activeData, colors),
+    [activeData, colors],
   );
 
   // ── Derive calendar colours + donut data + carousel cards from outcomes ───
@@ -135,6 +143,29 @@ export default function DashboardPage() {
 
   return (
     <>
+      {/* ── Mini Sudoku exclusion toggle ── */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setExcludeMiniSudoku((v) => !v)}
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-300 active:scale-95 ${
+            excludeMiniSudoku
+              ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400'
+              : 'bg-white/60 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-300 ${
+            excludeMiniSudoku ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'
+          }`} />
+          Sin Mini Sudoku
+        </button>
+
+        {excludeMiniSudoku && (
+          <span className="text-[10px] font-semibold text-amber-500/80 uppercase tracking-widest">
+            Modo hipotético
+          </span>
+        )}
+      </div>
+
       {/* Daily Results Carousel – newest first */}
       <div ref={carouselRef} className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 hide-scrollbar">
         {dailyCards.length === 0 ? (
