@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { extractRetrocesos } from '../utils/timeUtils';
+import { normalizeEditionDates } from '../utils/normalizeEditionDates';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -77,14 +78,17 @@ export function useGamesData(csvUrl: string): UseGamesDataResult {
         if (results.errors.length > 0) {
           setError(results.errors.map((e) => e.message).join('; '));
         } else {
-          // On-the-fly enrichment: derive the Zip 'Retrocesos' count from the
-          // raw 'Mensaje Original' text. No Google Sheet column required.
+          // Step 1 — Enrich: derive Zip 'Retrocesos' from 'Mensaje Original'.
           const enriched = results.data.map((row) =>
             row.Juego?.trim().toLowerCase() === 'zip'
               ? { ...row, Retrocesos: extractRetrocesos(row['Mensaje Original']) }
               : row,
           );
-          setData(enriched);
+          // Step 2 — Normalise: unify dates for same-edition records so that
+          // a player who completed a game after midnight (next calendar day)
+          // is still compared against the other player on the correct date.
+          const normalized = normalizeEditionDates(enriched);
+          setData(normalized);
         }
         setIsLoading(false);
       },

@@ -118,6 +118,7 @@ function WinnerCell({ winner, colors }: { winner: WinnerLabel; colors: PlayerCol
 export default function ResultsPage() {
   const [search, setSearch]             = useState('');
   const [gameFilter, setGameFilter]     = useState<GameFilter>('All');
+  const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [sortCol, setSortCol]           = useState<PivotSortCol>('Fecha');
   const [sortDir, setSortDir]           = useState<SortDir>('desc');
   const [page, setPage]                 = useState(1);
@@ -129,11 +130,13 @@ export default function ResultsPage() {
   // ── 0. Pivot ──────────────────────────────────────────────────────────────
   const pivoted = useMemo(() => pivotRecords(data), [data]);
 
-  // ── 1. Filter (game + search) ──────────────────────────────────────────────
+  // ── 1. Filter (game + search + incomplete) ───────────────────────────────
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return pivoted.filter((row) => {
       if (gameFilter !== 'All' && row.juego !== gameFilter) return false;
+      // Incomplete filter: keep only rows missing at least one player's result.
+      if (incompleteOnly && row.francisco !== undefined && row.enrique !== undefined) return false;
       if (q) {
         const inGame  = row.juego.toLowerCase().includes(q);
         const inDate  = row.fecha.toLowerCase().includes(q);
@@ -142,7 +145,7 @@ export default function ResultsPage() {
       }
       return true;
     });
-  }, [pivoted, search, gameFilter]);
+  }, [pivoted, search, gameFilter, incompleteOnly]);
 
   // ── 2. Sort ─────────────────────────────────────────────────────────────────
   const sorted = useMemo(
@@ -176,6 +179,11 @@ export default function ResultsPage() {
 
   function handleGameFilter(val: GameFilter) {
     setGameFilter(val);
+    setPage(1);
+  }
+
+  function handleIncompleteToggle() {
+    setIncompleteOnly((v) => !v);
     setPage(1);
   }
 
@@ -236,6 +244,26 @@ export default function ResultsPage() {
             <option key={g} value={g}>{g === 'All' ? 'All Games' : g}</option>
           ))}
         </select>
+
+        {/* Incomplete-only toggle */}
+        <button
+          onClick={handleIncompleteToggle}
+          className={`inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-300 active:scale-95 ${
+            incompleteOnly
+              ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400'
+              : 'bg-white/60 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-300 ${
+            incompleteOnly ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'
+          }`} />
+          Solo incompletos
+          {incompleteOnly && (
+            <span className="ml-1 tabular-nums text-amber-500">
+              ({filtered.length})
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Table */}
@@ -284,11 +312,14 @@ export default function ResultsPage() {
                 </tr>
               ) : (
                 pageRows.map((row: PivotRow) => {
-                  const isZip = row.juego.trim().toLowerCase() === 'zip';
+                  const isZip        = row.juego.trim().toLowerCase() === 'zip';
+                  const isIncomplete = row.francisco === undefined || row.enrique === undefined;
                   return (
                     <tr
                       key={row.key}
-                      className="cursor-pointer hover:bg-slate-800/5 dark:hover:bg-slate-700/40 active:scale-[0.99] transition-all duration-300"
+                      className={`cursor-pointer hover:bg-slate-800/5 dark:hover:bg-slate-700/40 active:scale-[0.99] transition-all duration-300 ${
+                        isIncomplete ? 'bg-amber-500/5 dark:bg-amber-500/5' : ''
+                      }`}
                       onClick={() => setSelectedDate(row.fecha || null)}
                     >
                       <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.fecha}</td>
