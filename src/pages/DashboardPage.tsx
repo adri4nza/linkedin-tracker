@@ -4,6 +4,8 @@ import MiniCalendar from '../components/MiniCalendar/MiniCalendar';
 import MonthlyTally from '../components/MonthlyTally/MonthlyTally';
 import DonutChart from '../components/DonutChart/DonutChart';
 import DailyResultsDrawer from '../components/DailyResultsDrawer/DailyResultsDrawer';
+import ScoreBreakdownDrawer from '../components/ScoreBreakdownDrawer/ScoreBreakdownDrawer';
+import GameDotRow from '../components/GameDotRow/GameDotRow';
 import { useGamesData, getActiveCsvUrl } from '../hooks/useGamesData';
 import { computeDailyOutcomes, computeMonthlyTally } from '../utils/dayWins';
 import { usePlayerColors, TIE_COLOUR } from '../hooks/usePlayerColors';
@@ -20,6 +22,12 @@ function formatDisplayDate(iso: string): string {
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [scoreSelection, setScoreSelection] = useState<{
+    player: string;
+    playerColor: string;
+    score: string;
+    dates: string[];
+  } | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   // Month/year currently visible in the MiniCalendar, kept in sync via its
@@ -139,38 +147,54 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          dailyCards.map((card) => (
-            <div
-              key={card.fecha}
-              className="snap-center min-w-full bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 shrink-0 transition-colors duration-300"
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: card.color + '26' }}
-                >
-                  <Trophy size={26} style={{ color: card.color }} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
-                    {formatDisplayDate(card.fecha)}
-                  </p>
-                  {card.winner === 'Tie' ? (
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                      Tied today{' '}
-                      <span style={{ color: card.color }}>{card.score}</span>
+          dailyCards.map((card) => {
+            const dateRecords = data.filter((r) => r.Fecha?.trim() === card.fecha);
+            return (
+              <button
+                key={card.fecha}
+                onClick={() => setSelectedDate(card.fecha)}
+                className="snap-center min-w-full bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/50 shrink-0 transition-all duration-300 hover:border-slate-300/70 dark:hover:border-slate-600/50 active:scale-[0.98] text-left"
+              >
+                {/* Top row: trophy icon + winner label */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: card.color + '26' }}
+                  >
+                    <Trophy size={20} style={{ color: card.color }} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                      {formatDisplayDate(card.fecha)}
                     </p>
-                  ) : (
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                      <span className="winner-glow" style={{ color: card.color, ['--glow' as string]: card.color }}>{card.winner}</span>{' '}
-                      won{' '}
-                      <span style={{ color: card.color }}>{card.score}</span>
-                    </p>
-                  )}
+                    {card.winner === 'Tie' ? (
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                        Tied today{' '}
+                        <span style={{ color: card.color }}>{card.score}</span>
+                      </p>
+                    ) : (
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                        <span className="winner-glow" style={{ color: card.color, ['--glow' as string]: card.color }}>
+                          {card.winner}
+                        </span>{' '}
+                        won{' '}
+                        <span style={{ color: card.color }}>{card.score}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))
+
+                {/* Bottom row: game logos + winner dots */}
+                <GameDotRow
+                  dateRecords={dateRecords}
+                  franciscoColor={colors.francisco}
+                  enriqueColor={colors.enrique}
+                  tieColor={TIE_COLOUR}
+                  size="sm"
+                />
+              </button>
+            );
+          })
         )}
       </div>
       <div className="space-y-2">
@@ -182,11 +206,42 @@ export default function DashboardPage() {
           onMonthChange={(m, y) => { setVisibleMonth(m); setVisibleYear(y); }}
         />
       </div>
-      <DonutChart data={winRateData.length ? winRateData : undefined} onDateSelect={setSelectedDate} />
+      <DonutChart
+        data={winRateData.length ? winRateData : undefined}
+        onScoreSelect={(player, playerColor, score, dates) =>
+          setScoreSelection({ player, playerColor, score, dates })
+        }
+      />
 
+      {/* Drawer 1 — Score breakdown (DonutChart → this) */}
+      <ScoreBreakdownDrawer
+        isOpen={scoreSelection !== null}
+        onClose={() => setScoreSelection(null)}
+        player={scoreSelection?.player ?? ''}
+        playerColor={scoreSelection?.playerColor ?? ''}
+        score={scoreSelection?.score ?? ''}
+        dates={scoreSelection?.dates ?? []}
+        data={data}
+        onDateSelect={(fecha) => {
+          // Keep ScoreBreakdownDrawer open in the background — just open daily drawer on top.
+          setSelectedDate(fecha);
+        }}
+      />
+
+      {/* Drawer 2 — Daily results (ScoreBreakdownDrawer card → this) */}
       <DailyResultsDrawer
         isOpen={selectedDate !== null}
-        onClose={() => setSelectedDate(null)}
+        onClose={() => {
+          setSelectedDate(null);
+          // If coming from ScoreBreakdownDrawer, closing ✕ dismisses everything.
+          setScoreSelection(null);
+        }}
+        onBack={
+          // Only show the back arrow when this drawer was opened from ScoreBreakdownDrawer.
+          scoreSelection !== null
+            ? () => setSelectedDate(null)   // close daily drawer; score drawer resurfaces
+            : undefined
+        }
         selectedDate={selectedDate}
         data={data}
       />
