@@ -6,10 +6,44 @@
 /* Un fondo general suave para el modo corporativo */
 body {
   @apply bg-slate-50 text-slate-900 transition-colors duration-200;
-  @apply dark:bg-slate-900 dark:text-slate-100;
+  @apply dark:bg-slate-950 dark:text-slate-100;
 }
 
 .recharts-wrapper, .recharts-surface { outline: none !important; }
+
+/* ---------------------------------------------------------------------------
+ * Tech / glass app shell
+ * A soft, layered radial backdrop that makes the glassmorphism (backdrop-blur)
+ * on cards, tabs and drawers read as translucent. Purely decorative.
+ * ------------------------------------------------------------------------- */
+.app-shell {
+  background-color: theme(colors.slate.50);
+  background-image:
+    radial-gradient(60rem 60rem at 15% -10%, rgba(59, 130, 246, 0.06), transparent 60%),
+    radial-gradient(50rem 50rem at 110% 10%, rgba(239, 68, 68, 0.05), transparent 55%);
+}
+.dark .app-shell {
+  background-color: theme(colors.slate.950);
+  background-image:
+    radial-gradient(60rem 60rem at 12% -10%, rgba(59, 130, 246, 0.16), transparent 60%),
+    radial-gradient(55rem 55rem at 112% 8%, rgba(239, 68, 68, 0.12), transparent 55%),
+    radial-gradient(45rem 45rem at 50% 120%, rgba(99, 102, 241, 0.10), transparent 60%);
+}
+
+/* ---------------------------------------------------------------------------
+ * Winner glow helpers
+ * Applied to a player's accent element when they win. The colour is injected
+ * via the inline --glow custom property so it respects the configurable
+ * player colours. Kept subtle for the minimalist aesthetic.
+ * ------------------------------------------------------------------------- */
+.winner-glow {
+  filter: drop-shadow(0 0 6px var(--glow, rgba(59, 130, 246, 0.55)));
+}
+.winner-glow-strong {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--glow, #3b82f6) 40%, transparent),
+    0 0 18px -2px var(--glow, rgba(59, 130, 246, 0.6));
+}
 
 /* Hide scrollbar while keeping scroll functionality */
 .hide-scrollbar {
