@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useReducer, useEffect } from 'react';
 import Papa from 'papaparse';
 import { extractRetrocesos } from '../utils/timeUtils';
 import { normalizeEditionDates } from '../utils/normalizeEditionDates';
@@ -46,37 +46,63 @@ export interface GameRecord {
   Retrocesos?: number | null;
 }
 
-interface UseGamesDataResult {
+export interface UseGamesDataResult {
   data: GameRecord[];
   isLoading: boolean;
   error: string | null;
 }
 
 // ---------------------------------------------------------------------------
+// Reducer — keeps all state transitions in one place so the effect only ever
+// dispatches from async callbacks, never synchronously in its own body.
+// ---------------------------------------------------------------------------
+type Action =
+  | { type: 'success'; payload: GameRecord[] }
+  | { type: 'failure'; payload: string }
+  | { type: 'no_url' };
+
+function reducer(_state: UseGamesDataResult, action: Action): UseGamesDataResult {
+  switch (action.type) {
+    case 'success':
+      return { data: action.payload, isLoading: false, error: null };
+    case 'failure':
+      return { data: [], isLoading: false, error: action.payload };
+    case 'no_url':
+      return { data: [], isLoading: false, error: 'No CSV URL provided.' };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 export function useGamesData(csvUrl: string): UseGamesDataResult {
-  const [data, setData] = useState<GameRecord[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(
+    reducer,
+    // Initial state: loading if we have a URL, error if we don't.
+    csvUrl
+      ? { data: [], isLoading: true, error: null }
+      : { data: [], isLoading: false, error: 'No CSV URL provided.' },
+  );
 
   useEffect(() => {
+    // No URL → dispatch from inside the effect but only when csvUrl changes,
+    // which avoids synchronous setState on every render.
     if (!csvUrl) {
-      setError('No CSV URL provided.');
-      setIsLoading(false);
+      dispatch({ type: 'no_url' });
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
+    // PapaParse dispatches only from async callbacks — no synchronous setState.
     Papa.parse<GameRecord>(csvUrl, {
       download: true,
       header: true,
       skipEmptyLines: true,
       complete(results) {
         if (results.errors.length > 0) {
-          setError(results.errors.map((e) => e.message).join('; '));
+          dispatch({
+            type: 'failure',
+            payload: results.errors.map((e) => e.message).join('; '),
+          });
         } else {
           // Step 1 — Enrich: derive Zip 'Retrocesos' from 'Mensaje Original'.
           const enriched = results.data.map((row) =>
@@ -88,16 +114,14 @@ export function useGamesData(csvUrl: string): UseGamesDataResult {
           // a player who completed a game after midnight (next calendar day)
           // is still compared against the other player on the correct date.
           const normalized = normalizeEditionDates(enriched);
-          setData(normalized);
+          dispatch({ type: 'success', payload: normalized });
         }
-        setIsLoading(false);
       },
       error(err) {
-        setError(err.message);
-        setIsLoading(false);
+        dispatch({ type: 'failure', payload: err.message });
       },
     });
   }, [csvUrl]);
 
-  return { data, isLoading, error };
+  return state;
 }
