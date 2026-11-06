@@ -189,8 +189,7 @@ export default function DailyResultsDrawer({
 
     return [...gameMap.entries()].map(([name, { enrique, francisco }]) => {
       // Centralized head-to-head resolution: lower time wins, victory by
-      // forfeit (missing time) and, on exact ties, the Zip-only retrocesos
-      // tiebreaker (fewer backtracks wins).
+      // forfeit (missing time); an exact tie is a tie.
       // calculateWinner(francisco, enrique, name) → 'a' = francisco, 'b' = enrique.
       const result = calculateWinner(francisco, enrique, name);
       const winner: Player | undefined =

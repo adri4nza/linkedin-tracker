@@ -23,11 +23,11 @@ Reglas evaluadas **en orden**:
 2. **Victoria por abandono / forfeit (`Infinity`)** — si un jugador tiene tiempo
    `Infinity` (no jugó o dato inválido) y el otro tiene tiempo finito, gana el
    que tiene tiempo finito automáticamente.
-3. **Empate exacto de tiempo (mismo número de segundos):**
-   - **Solo para `Zip`**: gana quien tenga **menos `Retrocesos`** (desempate).
-     El desempate es decisivo **únicamente si AMBOS conteos son conocidos**
-     (`!= null`). Si cualquiera de los dos es `null` (desconocido) ⇒ `'tie'`.
-   - **Para cualquier otro juego**: siempre `'tie'` (no se otorga punto).
+3. **Empate exacto de tiempo (mismo número de segundos):** siempre `'tie'`
+   (no se otorga punto), en todos los juegos. **No hay desempate.** Hasta
+   2026-11 Zip desempataba por `Retrocesos`, pero se quitó (en la app y en el
+   bot de n8n) porque el mensaje de LinkedIn no es confiable para eso. El
+   parámetro `gameName` se conserva (sin uso) para no tocar los llamadores.
 4. **Ambos tiempos `Infinity`** ⇒ `null` (no hay competencia; el día/partida no
    se cuenta).
 
@@ -87,7 +87,9 @@ Todos los utils downstream (`dayWins.ts`, `gameHeatmap.ts`, `analyticsStats.ts`,
 porque después de la normalización todos los registros de la misma edición ya
 comparten la misma fecha.
 
-## 3. Extracción dinámica de Retrocesos (exclusiva para el desempate de Zip)
+## 3. Extracción dinámica de Retrocesos (solo indicador visual de Zip)
+Ya no decide ganadores: solo alimenta el indicador ✨ / número de las vistas.
+
 Ubicación: `extractRetrocesos(text)` en `src/utils/timeUtils.ts`, invocada desde
 `useGamesData` solo para filas de `Zip`.
 
@@ -100,8 +102,7 @@ Ubicación: `extractRetrocesos(text)` en `src/utils/timeUtils.ts`, invocada desd
   3. Sin señal fiable ⇒ `null` (**desconocido**).
 - `null` es deliberadamente distinto de `0`: nunca se asume 0 para no otorgar
   indebidamente la estrella ✨ (partida perfecta) a registros mal parseados o
-  legacy. Un `null` en cualquiera de los dos lados anula el desempate de Zip
-  (resultado `'tie'`).
+  legacy.
 
 ## 4. Victoria por día — "días ganados" (`computeDailyOutcomes`)
 

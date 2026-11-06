@@ -29,8 +29,8 @@ actual; respétalas para no romper la arquitectura existente.
   nombres), debe añadirse en ese mismo pipeline (`useGamesData`) como un paso
   numerado adicional.
 - **`calculateWinner` es la única autoridad** para decidir un ganador
-  head-to-head. No dupliques su lógica (comparación de tiempos, forfeit,
-  desempate de Zip) en ningún otro lugar; llámala.
+  head-to-head. No dupliques su lógica (comparación de tiempos, forfeit)
+  en ningún otro lugar; llámala.
 - Respeta la **convención de orden de argumentos** documentada en
   `02_business_logic.md` (Francisco-first por defecto; Enrique-first solo en
   `analyticsStats.ts`).

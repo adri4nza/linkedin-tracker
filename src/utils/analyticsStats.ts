@@ -78,8 +78,8 @@ function minSecs(records: GameRecord[]): number {
  * Wins, TrendChart series) for a SINGLE mini-game.
  *
  * `records` MUST already be filtered by game + time range by the caller (the
- * page keeps that responsibility). `game` is forwarded to `calculateWinner` so
- * the Zip-only retrocesos tiebreaker keeps working.
+ * page keeps that responsibility). `game` is forwarded to `calculateWinner`
+ * to keep its signature stable.
  *
  * This is a 1:1 extraction of the previous inline `stats` useMemo in
  * AnalyticsPage and produces identical results:

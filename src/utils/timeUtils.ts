@@ -79,18 +79,19 @@ export type MatchResult = 'a' | 'b' | 'tie' | null;
  * 1. Lower time wins (primary criterion).
  * 2. Victory by forfeit: if one player's time is Infinity/missing and the
  *    other's is valid, the valid player wins automatically.
- * 3. Exact-time tie:
- *    - For 'Zip' only: fewer 'Retrocesos' (backtracks) wins. Equal count, or
- *      an unknown count on either side (null), → 'tie'.
- *    - For every other game: always 'tie' (no point awarded).
+ * 3. Exact-time tie → 'tie' (no point awarded), in every game. There is no
+ *    tiebreaker: Zip's backtrack count used to break ties, but LinkedIn's
+ *    message is not reliable enough to use it as a criterion.
  * 4. Both times Infinity → null (no contest, match not counted).
  *
- * @param gameName Name of the mini-game; drives the Zip-only tiebreaker.
+ * @param _gameName Name of the mini-game. Currently unused (no game-specific
+ *                  rules); kept so the call sites stay stable.
  */
 export function calculateWinner(
   recA: HeadToHeadRecord | undefined,
   recB: HeadToHeadRecord | undefined,
-  gameName: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for call-site stability
+  _gameName: string,
 ): MatchResult {
   const tA = timeToSeconds(recA?.Tiempo);
   const tB = timeToSeconds(recB?.Tiempo);
@@ -102,16 +103,6 @@ export function calculateWinner(
   if (tA < tB) return 'a';
   if (tB < tA) return 'b';
 
-  // Exact tie — Zip-only retrocesos tiebreaker (fewer backtracks wins).
-  // Only decisive when BOTH counts are known; an unknown (null) yields a tie.
-  if (gameName.trim().toLowerCase() === 'zip') {
-    const rA = recA?.Retrocesos ?? null;
-    const rB = recB?.Retrocesos ?? null;
-    if (rA != null && rB != null) {
-      if (rA < rB) return 'a';
-      if (rB < rA) return 'b';
-    }
-  }
-
+  // Exact tie — no tiebreaker in any game.
   return 'tie';
 }
